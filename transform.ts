@@ -3,13 +3,25 @@ import {
   isErr,
   isNull,
   Method,
+  NoContentHeaders,
   RangeHeader,
   RepresentationHeader,
   Status,
   unsafe,
 } from "./deps.ts";
 import { parseRange } from "./parser.ts";
-import type { Range, RangeSpec } from "./types.ts";
+import type { Range, RangeSpec, RangeUnit } from "./types.ts";
+
+export function withAcceptRanges(
+  response: Response,
+  unit: RangeUnit,
+): Response {
+  if (!response.headers.has(RangeHeader.AcceptRanges)) {
+    response.headers.set(RangeHeader.AcceptRanges, unit);
+  }
+
+  return response;
+}
 
 interface Context {
   readonly ranges: Iterable<Range>;
@@ -21,20 +33,14 @@ export async function withContentRange(
   context: Context,
 ): Promise<Response> {
   const rangeValue = request.headers.get(RangeHeader.Range);
-
-  // A server MUST ignore a Range header field received with a request method that is unrecognized or for which range handling is not defined. For this specification, GET is the only method for which range handling is defined.
-  // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-4
-  if (
-    request.method !== Method.Get ||
-    isNull(rangeValue) ||
-    request.headers.has(ConditionalHeader.IfRange)
-  ) {
-    return response;
-  }
-
   const contentType = response.headers.get(RepresentationHeader.ContentType);
 
   if (
+    // A server MUST ignore a Range header field received with a request method that is unrecognized or for which range handling is not defined. For this specification, GET is the only method for which range handling is defined.
+    // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-4
+    request.method !== Method.Get ||
+    isNull(rangeValue) ||
+    request.headers.has(ConditionalHeader.IfRange) ||
     response.headers.has(RangeHeader.ContentRange) ||
     response.headers.get(RangeHeader.AcceptRanges) === "none" ||
     response.bodyUsed ||
@@ -58,14 +64,20 @@ export async function withContentRange(
   // An origin server MUST ignore a Range header field that contains a range unit it does not understand. A proxy MAY discard a Range header field that contains a range unit it does not understand.
   // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-5
   if (!maybeRange) return response;
-  const matchedRange = maybeRange;
 
+  const matchedRange = maybeRange;
   const body = await response.clone().arrayBuffer();
   const satisfiableRangeSet = parsedRange.rangeSet.filter(isSatisfiable);
 
   if (!satisfiableRangeSet.length) {
+    const contentRange = `${matchedRange.unit} */${body.byteLength}`;
+    const headers = new NoContentHeaders(response.headers);
+
+    headers.set(RangeHeader.ContentRange, contentRange);
+
     return new Response(null, {
       status: Status.RequestedRangeNotSatisfiable,
+      headers,
     });
   }
 
