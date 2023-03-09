@@ -71,20 +71,13 @@ export async function withContentRange(
   const maybeRange = Array.from(context.ranges).find(matchRange);
   const body = await response.clone().arrayBuffer();
 
-  if (!maybeRange) {
-    // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
-    return new RequestedRangeNotSatisfiableResponse({
-      rangeUnit: parsedRange.rangeUnit,
-      completeLength: body.byteLength,
-    }, { headers: response.headers });
-  }
-
-  const isValid = parsedRange
-    .rangeSet
-    .map(toSpecifier)
-    .every((v) => maybeRange.specifiers.includes(v));
-
-  if (!isValid) {
+  if (
+    !maybeRange ||
+    !parsedRange
+      .rangeSet
+      .map(toSpecifier)
+      .every((v) => maybeRange.specifiers.includes(v))
+  ) {
     // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
     return new RequestedRangeNotSatisfiableResponse({
       rangeUnit: parsedRange.rangeUnit,
