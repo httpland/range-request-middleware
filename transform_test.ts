@@ -50,6 +50,22 @@ describe("withContentRange", () => {
       assert(initResponse === response);
     });
 
+    it("if the response is not ok", async () => {
+      const initResponse = new Response(null, {
+        status: Status.NotFound,
+        headers: { [RangeHeader.ContentRange]: "" },
+      });
+      const response = await withContentRange(
+        new Request("test:", {
+          headers: { [RangeHeader.Range]: "bytes=0-" },
+        }),
+        initResponse,
+        { ranges: [] },
+      );
+
+      assert(initResponse === response);
+    });
+
     it("if the Content-Range header exists in response", async () => {
       const initResponse = new Response(null, {
         headers: { [RangeHeader.ContentRange]: "" },
@@ -114,7 +130,15 @@ describe("withContentRange", () => {
         { ranges: [] },
       );
 
-      assert(initResponse === response);
+      assert(
+        equalsResponse(
+          response,
+          new Response(null, {
+            status: Status.RequestedRangeNotSatisfiable,
+            headers: { [RangeHeader.ContentRange]: "bytes */0" },
+          }),
+        ),
+      );
     });
 
     it("if the range unit does not match", async () => {
@@ -133,7 +157,15 @@ describe("withContentRange", () => {
         },
       );
 
-      assert(initResponse === response);
+      assert(
+        equalsResponse(
+          response,
+          new Response(null, {
+            status: Status.RequestedRangeNotSatisfiable,
+            headers: { [RangeHeader.ContentRange]: "bytes */0" },
+          }),
+        ),
+      );
     });
 
     it("if the range specifier does not match", async () => {
@@ -152,7 +184,15 @@ describe("withContentRange", () => {
         },
       );
 
-      assert(initResponse === response);
+      assert(
+        equalsResponse(
+          response,
+          new Response(null, {
+            status: Status.RequestedRangeNotSatisfiable,
+            headers: { [RangeHeader.ContentRange]: "bytes */0" },
+          }),
+        ),
+      );
     });
   });
 

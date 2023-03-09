@@ -11,7 +11,6 @@ import {
   parse,
   RangeHeader,
   type RangeSpec,
-  RangesSpecifier,
   RepresentationHeader,
   Status,
   unsafe,
@@ -53,6 +52,7 @@ export async function withContentRange(
     request.method !== Method.Get ||
     isNull(rangeValue) ||
     request.headers.has(ConditionalHeader.IfRange) ||
+    !response.ok ||
     response.headers.has(RangeHeader.ContentRange) ||
     response.headers.get(RangeHeader.AcceptRanges) === Unit.None ||
     response.bodyUsed ||
@@ -68,23 +68,41 @@ export async function withContentRange(
   }
 
   const parsedRange = rangeContainer.value;
-  const validityResult = checkValidity(parsedRange, context.ranges);
-  // An origin server MUST ignore a Range header field that contains a range unit it does not understand. A proxy MAY discard a Range header field that contains a range unit it does not understand.
-  // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-5
-  if (!validityResult) return response;
-
-  const matchedRange = validityResult;
+  const maybeRange = Array.from(context.ranges).find(matchRange);
   const body = await response.clone().arrayBuffer();
-  const satisfiableRangeSet = parsedRange.rangeSet.filter(isSatisfiable);
 
-  if (!satisfiableRangeSet.length) {
+  if (!maybeRange) {
+    // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
     return new RequestedRangeNotSatisfiableResponse({
-      rangeUnit: validityResult.unit,
+      rangeUnit: parsedRange.rangeUnit,
       completeLength: body.byteLength,
     }, { headers: response.headers });
   }
 
-  const partialContents = await validityResult.partial({
+  const isValid = parsedRange
+    .rangeSet
+    .map(toSpecifier)
+    .every((v) => maybeRange.specifiers.includes(v));
+
+  if (!isValid) {
+    // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
+    return new RequestedRangeNotSatisfiableResponse({
+      rangeUnit: parsedRange.rangeUnit,
+      completeLength: body.byteLength,
+    }, { headers: response.headers });
+  }
+
+  const matchedRange = maybeRange;
+  const satisfiableRangeSet = parsedRange.rangeSet.filter(isSatisfiable);
+
+  if (!satisfiableRangeSet.length) {
+    return new RequestedRangeNotSatisfiableResponse({
+      rangeUnit: matchedRange.unit,
+      completeLength: body.byteLength,
+    }, { headers: response.headers });
+  }
+
+  const partialContents = await matchedRange.partial({
     rangeSet: parsedRange.rangeSet,
     content: body,
     contentType,
@@ -102,6 +120,10 @@ export async function withContentRange(
   function isSatisfiable(rangeSpec: RangeSpec): boolean {
     return matchedRange.isSatisfiable({ contents: body, rangeSpec });
   }
+
+  function matchRange(range: Range): boolean {
+    return range.unit === parsedRange.rangeUnit;
+  }
 }
 
 function toSpecifier(
@@ -111,28 +133,4 @@ function toSpecifier(
   if (isIntRange(rangeSpec)) return "int-range";
 
   return "suffix-range";
-}
-
-function checkValidity(
-  range: RangesSpecifier,
-  ranges: Iterable<Range>,
-): false | Range {
-  const parsedRange = range;
-  const maybeRange = Array.from(ranges).find(matchRange);
-
-  // An origin server MUST ignore a Range header field that contains a range unit it does not understand. A proxy MAY discard a Range header field that contains a range unit it does not understand.
-  // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-5
-  if (!maybeRange) return false;
-
-  const matchedRange = maybeRange;
-  const nodes = parsedRange.rangeSet.map(toSpecifier);
-  const isValid = nodes.every((v) => matchedRange.specifiers.includes(v));
-
-  if (!isValid) return false;
-
-  return maybeRange;
-
-  function matchRange(range: Range): boolean {
-    return range.unit === parsedRange.rangeUnit;
-  }
 }
