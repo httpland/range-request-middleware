@@ -76,7 +76,7 @@ export async function withContentRange(
     !parsedRange
       .rangeSet
       .map(toSpecifier)
-      .every((v) => maybeRange.specifiers.includes(v))
+      .every((specifier) => maybeRange.specifiers.includes(specifier))
   ) {
     // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
     return new RequestedRangeNotSatisfiableResponse({
