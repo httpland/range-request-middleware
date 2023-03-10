@@ -4,13 +4,12 @@
 import {
   ConditionalHeader,
   isErr,
-  isIntRange,
+  isNotEmpty,
   isNull,
-  isOtherRange,
   Method,
   parse,
   RangeHeader,
-  type RangeSpec,
+  RangesSpecifier,
   RepresentationHeader,
   Status,
   unsafe,
@@ -19,9 +18,9 @@ import {
   RangeUnit as Unit,
   RequestedRangeNotSatisfiableResponse,
   shallowMergeHeaders,
+  toSpecifier,
 } from "./util.ts";
-
-import type { Range, RangeUnit, Specifier } from "./types.ts";
+import type { Range, RangeUnit } from "./types.ts";
 
 export function withAcceptRanges(
   response: Response,
@@ -68,16 +67,10 @@ export async function withContentRange(
   }
 
   const parsedRange = rangeContainer.value;
-  const maybeRange = Array.from(context.ranges).find(matchRange);
+  const matchedRange = matchRange(parsedRange, context.ranges);
   const body = await response.clone().arrayBuffer();
 
-  if (
-    !maybeRange ||
-    !parsedRange
-      .rangeSet
-      .map(toSpecifier)
-      .every((specifier) => maybeRange.specifiers.includes(specifier))
-  ) {
+  if (!matchedRange) {
     // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
     return new RequestedRangeNotSatisfiableResponse({
       rangeUnit: parsedRange.rangeUnit,
@@ -85,18 +78,20 @@ export async function withContentRange(
     }, { headers: response.headers });
   }
 
-  const matchedRange = maybeRange;
-  const satisfiableRangeSet = parsedRange.rangeSet.filter(isSatisfiable);
+  const targetRangeSet = matchedRange.getSatisfiable({
+    content: body,
+    rangeSet: parsedRange.rangeSet,
+  });
 
-  if (!satisfiableRangeSet.length) {
+  if (!isNotEmpty(targetRangeSet)) {
     return new RequestedRangeNotSatisfiableResponse({
       rangeUnit: matchedRange.unit,
       completeLength: body.byteLength,
     }, { headers: response.headers });
   }
 
-  const partialContents = await matchedRange.partial({
-    rangeSet: parsedRange.rangeSet,
+  const partialContents = await matchedRange.getPartial({
+    rangeSet: targetRangeSet,
     content: body,
     contentType,
   });
@@ -109,21 +104,22 @@ export async function withContentRange(
     status: Status.PartialContent,
     headers,
   });
-
-  function isSatisfiable(rangeSpec: RangeSpec): boolean {
-    return matchedRange.isSatisfiable({ contents: body, rangeSpec });
-  }
-
-  function matchRange(range: Range): boolean {
-    return range.unit === parsedRange.rangeUnit;
-  }
 }
 
-function toSpecifier(
-  rangeSpec: RangeSpec,
-): Specifier {
-  if (isOtherRange(rangeSpec)) return "other-range";
-  if (isIntRange(rangeSpec)) return "int-range";
+function matchRange(
+  range: RangesSpecifier,
+  ranges: Iterable<Range>,
+): null | Range {
+  const maybeRange = Array.from(ranges).find(({ unit }) =>
+    unit === range.rangeUnit
+  );
 
-  return "suffix-range";
+  if (!maybeRange) return null;
+
+  const result = range
+    .rangeSet
+    .map(toSpecifier)
+    .every((specifier) => maybeRange.specifiers.includes(specifier));
+
+  return result ? maybeRange : null;
 }

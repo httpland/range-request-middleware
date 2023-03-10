@@ -9,6 +9,7 @@ import {
   Status,
 } from "./_dev_deps.ts";
 import type { RangeUnit } from "./types.ts";
+import { Specifier } from "./util.ts";
 
 describe("withContentRange", () => {
   describe("should return same response", () => {
@@ -150,9 +151,9 @@ describe("withContentRange", () => {
         {
           ranges: [{
             unit: "xxx",
-            specifiers: ["int-range"],
-            isSatisfiable: () => true,
-            partial: () => ({ content: "", headers: new Headers() }),
+            specifiers: [Specifier.IntRange],
+            getSatisfiable: () => [],
+            getPartial: () => ({ content: "", headers: new Headers() }),
           }],
         },
       );
@@ -177,9 +178,9 @@ describe("withContentRange", () => {
         {
           ranges: [{
             unit: "bytes",
-            specifiers: ["other-range"],
-            isSatisfiable: () => true,
-            partial: () => ({ content: "", headers: new Headers() }),
+            specifiers: [Specifier.OtherRange],
+            getSatisfiable: () => [],
+            getPartial: () => ({ content: "", headers: new Headers() }),
           }],
         },
       );
@@ -205,9 +206,9 @@ describe("withContentRange", () => {
       {
         ranges: [{
           unit: "bytes",
-          specifiers: ["int-range"],
-          isSatisfiable: () => false,
-          partial: () => ({ content: "", headers: new Headers() }),
+          specifiers: [Specifier.IntRange],
+          getSatisfiable: () => [],
+          getPartial: () => ({ content: "", headers: new Headers() }),
         }],
       },
     );
@@ -235,9 +236,9 @@ describe("withContentRange", () => {
       {
         ranges: [{
           unit: "bytes",
-          specifiers: ["int-range"],
-          isSatisfiable: () => true,
-          partial: () => ({
+          specifiers: [Specifier.IntRange],
+          getSatisfiable: () => [{ firstPos: 0, lastPos: undefined }],
+          getPartial: () => ({
             content: "efgh",
             headers: new Headers({ [RangeHeader.ContentRange]: "range" }),
           }),
