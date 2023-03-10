@@ -9,7 +9,7 @@
 [![test](https://github.com/httpland/range-middleware/actions/workflows/test.yaml/badge.svg)](https://github.com/httpland/range-middleware/actions/workflows/test.yaml)
 [![NPM](https://nodei.co/npm/@httpland/range-middleware.png?mini=true)](https://nodei.co/npm/@httpland/range-middleware/)
 
-HTTP Range Requests middleware.
+HTTP range request middleware.
 
 ## What
 
