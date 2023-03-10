@@ -19,7 +19,7 @@ import {
   RequestedRangeNotSatisfiableResponse,
   shallowMergeHeaders,
   toSpecifier,
-} from "./util.ts";
+} from "./utils.ts";
 import type { Range, RangeUnit } from "./types.ts";
 
 export function withAcceptRanges(

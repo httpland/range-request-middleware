@@ -1,5 +1,5 @@
 import { IntRange, OtherRange, type RangeSpec, SuffixRange } from "./deps.ts";
-import { Specifier } from "./util.ts";
+import { Specifier } from "./utils.ts";
 
 interface SpecifierMap {
   [Specifier.IntRange]: IntRange;

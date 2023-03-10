@@ -16,7 +16,7 @@ import type {
   PartialContext,
   Range,
 } from "../types.ts";
-import { RangeUnit, Specifier } from "../util.ts";
+import { RangeUnit, Specifier } from "../utils.ts";
 import { type InclRange, multipartByteranges } from "./utils.ts";
 
 interface Options {

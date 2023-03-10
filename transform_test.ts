@@ -9,7 +9,7 @@ import {
   Status,
 } from "./_dev_deps.ts";
 import type { RangeUnit } from "./types.ts";
-import { Specifier } from "./util.ts";
+import { Specifier } from "./utils.ts";
 
 describe("withContentRange", () => {
   describe("should return same response", () => {
