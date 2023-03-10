@@ -51,7 +51,7 @@ export async function withContentRange(
     request.method !== Method.Get ||
     isNull(rangeValue) ||
     request.headers.has(ConditionalHeader.IfRange) ||
-    !response.ok ||
+    response.status !== Status.OK ||
     response.headers.has(RangeHeader.ContentRange) ||
     response.headers.get(RangeHeader.AcceptRanges) === Unit.None ||
     response.bodyUsed ||
