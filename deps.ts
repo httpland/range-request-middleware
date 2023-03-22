@@ -31,7 +31,7 @@ export {
   type RangeSpec,
   type RangesSpecifier,
   type SuffixRange,
-} from "https://deno.land/x/range_parser@1.0.0/mod.ts";
+} from "https://deno.land/x/range_parser@1.1.0/mod.ts";
 export { concat } from "https://deno.land/std@0.180.0/bytes/concat.ts";
 export { distinct } from "https://deno.land/std@0.180.0/collections/distinct.ts";
 export { toHashString } from "https://deno.land/std@0.180.0/crypto/to_hash_string.ts";
