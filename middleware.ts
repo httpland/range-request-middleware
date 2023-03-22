@@ -16,7 +16,38 @@ import type { Range } from "./types.ts";
 
 const DefaultRanges = [new BytesRange()];
 
-export function rangeRequest(ranges?: Iterable<Range>): Middleware {
+/** Create range request middleware.
+ *
+ * @example
+ * ```ts
+ * import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
+ * import {
+ *   assert,
+ *   assertEquals,
+ *   assertThrows,
+ * } from "https://deno.land/std/testing/asserts.ts";
+ *
+ * const middleware = rangeRequest();
+ * const request = new Request("test:", {
+ *   headers: { range: "bytes=5-9" },
+ * });
+ * const response = await middleware(
+ *   request,
+ *   () => new Response("abcdefghijklmnopqrstuvwxyz"),
+ * );
+ *
+ * assertEquals(response.status, 206);
+ * assertEquals(response.headers.get("content-range"), "bytes 5-9/26");
+ * assertEquals(response.headers.get("accept-ranges"), "bytes");
+ * assertEquals(await response.text(), "fghij");
+ * ```
+ */
+export function rangeRequest(
+  /**
+   * @default {@link DefaultRanges}
+   */
+  ranges?: Iterable<Range>,
+): Middleware {
   const $ranges = ranges ?? DefaultRanges;
   const units = Array.from($ranges).map((range) => range.unit);
   const unitLike = isNotEmpty(units) ? units : RangeUnit.None;
