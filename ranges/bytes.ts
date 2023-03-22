@@ -4,79 +4,95 @@
 import {
   type IntRange,
   isIntRange,
+  isNotEmpty,
   isNumber,
+  isOtherRange,
   RangeHeader,
+  type RangeSpec,
   RepresentationHeader,
+  Status,
   type SuffixRange,
   toHashString,
 } from "../deps.ts";
-import type {
-  IsSatisfiableContext,
-  PartialContent,
-  PartialContext,
-  Range,
-} from "../types.ts";
-import { RangeUnit, Specifier } from "../utils.ts";
-import { type InclRange, multipartByteranges } from "./utils.ts";
+import type { Range, RangeContext } from "../types.ts";
+import { RangeUnit } from "../utils.ts";
+import { multipartByteranges } from "./utils.ts";
+import { type InclRange, stringify } from "../content_range.ts";
 
-interface Options {
-  readonly boundary?: BoundaryCallback;
+export interface Options {
+  readonly computeBoundary?: ComputeBoundary;
 }
 
-export class BytesRange
-  implements Range<Specifier.SuffixRange | Specifier.IntRange> {
+export class BytesRange implements Range {
   constructor(options?: Options) {
-    this.#boundary = options?.boundary ?? getBoundary;
+    this.#boundary = options?.computeBoundary ?? digestSha1;
   }
 
   unit = RangeUnit.Bytes;
-  specifiers = [Specifier.SuffixRange, Specifier.IntRange] as const;
-  #boundary: BoundaryCallback;
+  #boundary: ComputeBoundary;
 
-  getSatisfiable(
-    context: IsSatisfiableContext<IntRange | SuffixRange>,
-  ): (IntRange | SuffixRange)[] {
-    return context.rangeSet.filter((rangeSpec) =>
-      isSatisfiable(rangeSpec, context.content.byteLength)
+  respond(context: RangeContext): Promise<Response> {
+    return respondPartial({ ...context, computeBoundary: this.#boundary });
+  }
+}
+
+export async function respondPartial(
+  context: RangeContext & { computeBoundary: ComputeBoundary },
+): Promise<Response> {
+  const { content, contentType, rangeUnit } = context;
+  const size = content.byteLength;
+  const inclRanges = context.rangeSet
+    .filter(isSupportedRanceSpec)
+    .filter(
+      (rangeSpec) => isSatisfiable(rangeSpec, size),
+    ).map((rangeSpec) => rangeSpec2InclRange(rangeSpec, size));
+
+  if (!isNotEmpty(inclRanges)) {
+    const contentRange = stringify({
+      rangeUnit,
+      range: { completeLength: size },
+    });
+
+    return new Response(null, {
+      status: Status.RequestedRangeNotSatisfiable,
+      headers: { [RangeHeader.ContentRange]: contentRange },
+    });
+  }
+
+  if (inclRanges.length === 1) {
+    const inclRange = inclRanges[0];
+    const partialBody = context.content.slice(
+      inclRange.firstPos,
+      inclRange.lastPos + 1,
     );
-  }
-
-  async getPartial(
-    context: PartialContext<IntRange | SuffixRange>,
-  ): Promise<PartialContent> {
-    const { rangeSet, content, contentType } = context;
-    const size = content.byteLength;
-    const ranges = rangeSet.map((rangeSpec) =>
-      rangeSpec2InclRange(rangeSpec, size)
-    ) as [InclRange, ...InclRange[]];
-
-    if (ranges.length === 1) {
-      const byteRange = ranges[0];
-      const partialBody = content.slice(
-        byteRange.firstPos,
-        byteRange.lastPos + 1,
-      );
-      const contentRange =
-        `bytes ${byteRange.firstPos}-${byteRange.lastPos}/${size}`;
-      const headers = new Headers({ [RangeHeader.ContentRange]: contentRange });
-
-      return { content: partialBody, headers };
-    }
-
-    const boundary = await this.#boundary(content);
-    const newContentType = `multipart/byteranges; boundary=${boundary}`;
-    const multipart = multipartByteranges({
-      content,
-      contentType,
-      ranges,
-      boundary,
-    });
-    const headers = new Headers({
-      [RepresentationHeader.ContentType]: newContentType,
+    const contentRange = stringify({
+      rangeUnit: RangeUnit.Bytes,
+      range: { ...inclRange, completeLength: size },
     });
 
-    return { content: multipart, headers };
+    return new Response(partialBody, {
+      status: Status.PartialContent,
+      headers: {
+        [RangeHeader.ContentRange]: contentRange,
+        [RepresentationHeader.ContentType]: contentType,
+      },
+    });
   }
+
+  const boundary = await context.computeBoundary(content);
+  const newContentType = `multipart/byteranges; boundary=${boundary}`;
+  const multipart = multipartByteranges({
+    content,
+    contentType,
+    ranges: inclRanges,
+    boundary,
+    rangeUnit: RangeUnit.Bytes,
+  });
+
+  return new Response(multipart, {
+    status: Status.PartialContent,
+    headers: { [RepresentationHeader.ContentType]: newContentType },
+  });
 }
 
 export function isSatisfiable(
@@ -92,36 +108,41 @@ export function isSatisfiable(
   return !!rangeSpec.suffixLength;
 }
 
+export function isSupportedRanceSpec(
+  rangeSpec: RangeSpec,
+): rangeSpec is IntRange | SuffixRange {
+  return !isOtherRange(rangeSpec);
+}
+
 export function rangeSpec2InclRange(
   rangeSpec: IntRange | SuffixRange,
   completeLength: number,
 ): InclRange {
   if (isIntRange(rangeSpec)) {
-    const lastPos = isNumber(rangeSpec.lastPos)
-      ? completeLength < rangeSpec.lastPos
-        ? completeLength - 1
-        : rangeSpec.lastPos
-      : completeLength - 1;
+    const lastPos = !isNumber(rangeSpec.lastPos) ||
+        (isNumber(rangeSpec.lastPos) && completeLength <= rangeSpec.lastPos)
+      ? completeLength ? completeLength - 1 : 0
+      : rangeSpec.lastPos;
 
     return { firstPos: rangeSpec.firstPos, lastPos };
   }
 
-  if (completeLength < rangeSpec.suffixLength) {
-    return { firstPos: 0, lastPos: completeLength - 1 };
-  }
+  const firstPos = completeLength < rangeSpec.suffixLength
+    ? 0
+    : completeLength - rangeSpec.suffixLength;
+  const lastPos = completeLength ? completeLength - 1 : 0;
 
-  return {
-    firstPos: completeLength - rangeSpec.suffixLength,
-    lastPos: completeLength - 1,
-  };
+  return { firstPos, lastPos };
 }
 
-export interface BoundaryCallback {
+export interface ComputeBoundary {
   (content: ArrayBuffer): string | Promise<string>;
 }
 
-export async function getBoundary(content: ArrayBuffer): Promise<string> {
-  const buffer = await crypto.subtle.digest("sha-1", content);
+export async function digestSha1(content: ArrayBuffer): Promise<string> {
+  const hash = await crypto
+    .subtle
+    .digest("SHA-1", content);
 
-  return toHashString(buffer);
+  return toHashString(hash);
 }
