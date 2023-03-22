@@ -49,7 +49,7 @@ export function rangeRequest(
   ranges?: Iterable<Range>,
 ): Middleware {
   const $ranges = ranges ?? DefaultRanges;
-  const units = Array.from($ranges).map((range) => range.unit);
+  const units = Array.from($ranges).map((range) => range.rangeUnit);
   const unitLike = isNotEmpty(units) ? units : RangeUnit.None;
 
   const contentRangeMiddleware = contentRange($ranges);

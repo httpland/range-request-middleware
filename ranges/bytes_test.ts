@@ -237,6 +237,6 @@ describe("BytesRange", () => {
   const bytesRange = new BytesRange();
 
   it("should unit is bytes", () => {
-    assertEquals(bytesRange.unit, "bytes");
+    assertEquals(bytesRange.rangeUnit, "bytes");
   });
 });

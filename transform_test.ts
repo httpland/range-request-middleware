@@ -19,7 +19,7 @@ describe("withContentRange", () => {
 
     const response = await withContentRange(initResponse, {
       rangeValue: "",
-      ranges: [{ unit: "bytes", respond }],
+      ranges: [{ rangeUnit: "bytes", respond }],
     });
 
     assert(response === initResponse);
@@ -33,7 +33,7 @@ describe("withContentRange", () => {
 
     const response = await withContentRange(initResponse, {
       rangeValue: "",
-      ranges: [{ unit: "bytes", respond }],
+      ranges: [{ rangeUnit: "bytes", respond }],
     });
 
     assert(response === initResponse);
@@ -47,7 +47,7 @@ describe("withContentRange", () => {
 
     const response = await withContentRange(initResponse, {
       rangeValue: "",
-      ranges: [{ unit: "bytes", respond }],
+      ranges: [{ rangeUnit: "bytes", respond }],
     });
 
     assert(response === initResponse);
@@ -63,7 +63,7 @@ describe("withContentRange", () => {
 
     const response = await withContentRange(initResponse, {
       rangeValue: "",
-      ranges: [{ unit: "bytes", respond }],
+      ranges: [{ rangeUnit: "bytes", respond }],
     });
 
     assert(response === initResponse);
@@ -78,7 +78,7 @@ describe("withContentRange", () => {
 
     const response = await withContentRange(initResponse, {
       rangeValue: "",
-      ranges: [{ unit: "bytes", respond }],
+      ranges: [{ rangeUnit: "bytes", respond }],
     });
 
     assert(response === initResponse);
@@ -90,7 +90,7 @@ describe("withContentRange", () => {
 
     const response = await withContentRange(initResponse, {
       rangeValue: "",
-      ranges: [{ unit: "bytes", respond }],
+      ranges: [{ rangeUnit: "bytes", respond }],
     });
 
     assert(response === initResponse);
@@ -105,7 +105,7 @@ describe("withContentRange", () => {
       {
         rangeValue: "bytes=0-",
         ranges: [{
-          unit: "xxx",
+          rangeUnit: "xxx",
           respond,
         }],
       },
@@ -132,7 +132,7 @@ describe("withContentRange", () => {
       initResponse,
       {
         rangeValue: "bytes=0-",
-        ranges: [{ unit: "bytes", respond }],
+        ranges: [{ rangeUnit: "bytes", respond }],
       },
     );
 
@@ -175,8 +175,8 @@ describe("withAcceptRanges", () => {
       ],
     ];
 
-    await Promise.all(table.map(async ([initResponse, unit, expected]) => {
-      const response = withAcceptRanges(initResponse, unit);
+    await Promise.all(table.map(async ([initResponse, rangeUnit, expected]) => {
+      const response = withAcceptRanges(initResponse, rangeUnit);
 
       assert(
         await equalsResponse(response, expected, true),

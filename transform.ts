@@ -66,8 +66,8 @@ export async function withContentRange(
   }
 
   const parsedRange = rangeContainer.value;
-  const matchedRange = Array.from(context.ranges).find(({ unit }) =>
-    unit === parsedRange.rangeUnit
+  const matchedRange = Array.from(context.ranges).find(({ rangeUnit }) =>
+    rangeUnit === parsedRange.rangeUnit
   );
   const body = await response.clone().arrayBuffer();
 

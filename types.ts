@@ -1,29 +1,24 @@
 // Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
 // This module is browser compatible.
 
-import { type RangeSet } from "./deps.ts";
+import { type RangesSpecifier } from "./deps.ts";
 
 /** Range API. */
 export interface Range {
   /** Corresponding range unit. */
-  readonly unit: string;
+  readonly rangeUnit: string;
 
   /** Takes the context of a range request and handler response and return a partial response. */
-  readonly respond: Respond;
+  readonly respond: RangeRespond;
 }
 
-export interface Respond {
+/** Range responding API. */
+export interface RangeRespond {
   (context: RangeContext): Response | Promise<Response>;
 }
 
 /** Context of range request and response. */
-export interface RangeContext {
-  /** Corresponding range unit. */
-  readonly rangeUnit: string;
-
-  /** Representation of [`<range-set>`](https://www.rfc-editor.org/rfc/rfc9110#range.specifiers). */
-  readonly rangeSet: RangeSet;
-
+export interface RangeContext extends RangesSpecifier {
   /** Full response content. */
   readonly content: ArrayBuffer;
 

@@ -40,7 +40,7 @@ export class BytesRange implements Range {
     this.#boundary = options?.computeBoundary ?? digestSha1;
   }
 
-  unit = RangeUnit.Bytes;
+  rangeUnit = RangeUnit.Bytes;
 
   respond(context: RangeContext): Promise<Response> {
     return respondPartial({ ...context, computeBoundary: this.#boundary });

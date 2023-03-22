@@ -7,8 +7,8 @@ export {
   type IntRange,
   type Middleware,
   type OtherRange,
-  type RangeSet,
   type RangeSpec,
+  type RangesSpecifier,
   type SuffixRange,
 } from "./deps.ts";
 export {
@@ -16,4 +16,4 @@ export {
   BytesRange,
   type ComputeBoundary,
 } from "./ranges/bytes.ts";
-export type { Range, RangeContext, Respond } from "./types.ts";
+export type { Range, RangeContext, RangeRespond } from "./types.ts";

@@ -28,8 +28,8 @@ export {
   type OtherRange,
   parse,
   type Range,
-  type RangeSet,
   type RangeSpec,
+  type RangesSpecifier,
   type SuffixRange,
 } from "https://deno.land/x/range_parser@1.0.0/mod.ts";
 export { concat } from "https://deno.land/std@0.180.0/bytes/concat.ts";

@@ -223,10 +223,10 @@ protocols.
 
 `Range` is the following structure:
 
-| Name    | Type      | Description                                                                              |
-| ------- | --------- | ---------------------------------------------------------------------------------------- |
-| unit    | `string`  | Corresponding range unit.                                                                |
-| respond | `Respond` | Takes the context of a range request and handler response and return a partial response. |
+| Name      | Type           | Description                                                                              |
+| --------- | -------------- | ---------------------------------------------------------------------------------------- |
+| rangeUnit | `string`       | Corresponding range unit.                                                                |
+| respond   | `RangeRespond` | Takes the context of a range request and handler response and return a partial response. |
 
 The middleware supports the following range request protocols by default:
 
