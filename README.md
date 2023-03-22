@@ -1,9 +1,9 @@
-# range-middleware
+# range-request-middleware
 
 [![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/range_middleware)
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/range_middleware/mod.ts)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/httpland/range-middleware)](https://github.com/httpland/range-middleware/releases)
-[![codecov](https://codecov.io/github/httpland/range-middleware/branch/main/graph/badge.svg?token=MNFZEQH8OK)](https://codecov.io/gh/httpland/range-middleware)
+[![codecov](https://codecov.io/github/httpland/range-middleware/branch/main/graph/badge.svg)](https://codecov.io/gh/httpland/range-middleware)
 [![GitHub](https://img.shields.io/github/license/httpland/range-middleware)](https://github.com/httpland/range-middleware/blob/main/LICENSE)
 
 [![test](https://github.com/httpland/range-middleware/actions/workflows/test.yaml/badge.svg)](https://github.com/httpland/range-middleware/actions/workflows/test.yaml)
@@ -28,25 +28,36 @@ range requirement [converts](#conversion) it to a partial response.
 Headers and status code will be modified accordingly.
 
 ```ts
-import { range } from "https://deno.land/x/range_middleware/mod.ts";
+import { rangeRequest } from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
 import {
   assert,
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
 
-const middleware = range();
-const rangeRequest = new Request("test:", {
+const middleware = rangeRequest();
+const request = new Request("test:", {
   headers: { range: "bytes=5-9" },
 });
 const response = await middleware(
-  rangeRequest,
+  request,
   () => new Response("abcdefghijklmnopqrstuvwxyz"),
 );
 
 assertEquals(response.status, 206);
-assertEquals(response.headers.get("content-range", "bytes 5-9/26"));
+assertEquals(response.headers.get("content-range"), "bytes 5-9/26");
+assertEquals(response.headers.get("accept-ranges"), "bytes");
 assertEquals(await response.text(), "fghij");
+```
+
+yield:
+
+```http
+HTTP/<VERSION> 206
+Content-Range: bytes 5-9/26
+Accept-Ranges: bytes
+
+fghij
 ```
 
 ## Multi-range request
@@ -55,19 +66,19 @@ For multi-range request, this will be converted to a multipart message body with
 `multipart/byteranges`.
 
 ```ts
-import { range } from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
+import { rangeRequest } from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
 import {
   assert,
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
 
-const middleware = range();
-const rangeRequest = new Request("test:", {
+const middleware = rangeRequest();
+const request = new Request("test:", {
   headers: { range: "bytes=5-9, 20-, -5" },
 });
 const response = await middleware(
-  rangeRequest,
+  request,
   () => new Response("abcdefghijklmnopqrstuvwxyz"),
 );
 
@@ -75,8 +86,8 @@ assertEquals(response.status, 206);
 assertEquals(
   response.headers.get(
     "content-type",
-    "multipart/byteranges; boundary=<boundary-delimiter>",
   ),
+  "multipart/byteranges; boundary=<boundary-delimiter>",
 );
 assertEquals(
   await response.text(),
@@ -97,6 +108,31 @@ Content-Range: 21-25/26
 vwxyz
 --<boundary-delimiter>--`,
 );
+```
+
+yield:
+
+```http
+HTTP/<VERSION> 206
+Content-Type: multipart/byteranges; boundary=<BOUNDARY-DELIMITER>
+Accept-Ranges: bytes
+
+--<BOUNDARY-DELIMITER>
+Content-Type: text/plain;charset=UTF-8
+Content-Range: 5-9/26
+
+fghij
+--<BOUNDARY-DELIMITER>
+Content-Type: text/plain;charset=UTF-8
+Content-Range: 20-25/26
+
+uvwxyz
+--<BOUNDARY-DELIMITER>
+Content-Type: text/plain;charset=UTF-8
+Content-Range: 21-25/26
+
+vwxyz
+--<BOUNDARY-DELIMITER>--
 ```
 
 ## Conditions
@@ -144,11 +180,14 @@ We receive `<range-unit>` and `<range-specifier>` as `Range` headers, which
 conform to the syntax but are not supported.
 
 ```ts
-import { range } from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
+import {
+  type Handler,
+  rangeRequest,
+} from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
 import { assertEquals } from "https://deno.land/std@0.178.0/testing/asserts.ts";
-declare const handler = () => Response;
+declare const handler: Handler;
 
-const middleware = range();
+const middleware = rangeRequest();
 const response = await middleware(
   new Request("test:", { headers: { range: "<unknown-unit>=<other-range>" } }),
   handler,
