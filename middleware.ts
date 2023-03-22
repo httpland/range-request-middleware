@@ -1,20 +1,63 @@
-// deno-lint-ignore-file no-explicit-any
+// Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
+// This module is browser compatible.
 
-import { type Middleware } from "./deps.ts";
-import { withContentRange } from "./transform.ts";
+import {
+  ConditionalHeader,
+  isNotEmpty,
+  isNull,
+  Method,
+  type Middleware,
+  RangeHeader,
+} from "./deps.ts";
+import { UnitLike, withAcceptRanges, withContentRange } from "./transform.ts";
 import { BytesRange } from "./ranges/bytes.ts";
+import { RangeUnit } from "./utils.ts";
 import type { Range } from "./types.ts";
 
-interface Options {
-  readonly ranges?: readonly Range<any>[];
+const DefaultRanges = [new BytesRange()];
+
+export function rangeRequest(ranges?: Iterable<Range>): Middleware {
+  const $ranges = ranges ?? DefaultRanges;
+  const units = Array.from($ranges).map((range) => range.unit);
+  const unitLike = isNotEmpty(units) ? units : RangeUnit.None;
+
+  const contentRangeMiddleware = contentRange($ranges);
+  const acceptRangesMiddleware = acceptRanges(unitLike);
+
+  return (request, next) => {
+    return contentRangeMiddleware(
+      request,
+      (request) => acceptRangesMiddleware(request, next),
+    );
+  };
 }
 
-export function range(options?: Options): Middleware {
-  const ranges = options?.ranges ?? [new BytesRange() as Range<any>];
+export function contentRange(ranges?: Iterable<Range>): Middleware {
+  const $ranges = ranges ?? DefaultRanges;
+
+  return async (request, next) => {
+    const rangeValue = request.headers.get(RangeHeader.Range);
+
+    // A server MUST ignore a Range header field received with a request method that is unrecognized or for which range handling is not defined. For this specification, GET is the only method for which range handling is defined.
+    // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-4
+    if (
+      request.method !== Method.Get ||
+      isNull(rangeValue) ||
+      request.headers.has(ConditionalHeader.IfRange)
+    ) return next(request);
+
+    const response = await next(request);
+
+    return withContentRange(response, { ranges: $ranges, rangeValue });
+  };
+}
+
+export function acceptRanges(unitLike?: UnitLike): Middleware {
+  const rangeUnit = unitLike ?? RangeUnit.Bytes;
 
   return async (request, next) => {
     const response = await next(request);
 
-    return withContentRange(request, response, { ranges });
+    return withAcceptRanges(response, rangeUnit);
   };
 }
