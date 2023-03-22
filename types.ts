@@ -1,41 +1,22 @@
-import { IntRange, OtherRange, type RangeSpec, SuffixRange } from "./deps.ts";
-import { Specifier } from "./utils.ts";
+import { type RangeSet } from "./deps.ts";
 
-interface SpecifierMap {
-  [Specifier.IntRange]: IntRange;
-  [Specifier.SuffixRange]: SuffixRange;
-  [Specifier.OtherRange]: OtherRange;
-}
-
-export interface Range<in out S extends Specifier = Specifier> {
+export interface Range {
+  /** Representation of [`<range-unit>`](). */
   readonly unit: string;
-  readonly specifiers: readonly S[];
-  readonly getSatisfiable: GetSatisfiableCallback<SpecifierMap[S]>;
-  readonly getPartial: GetPartialCallback<SpecifierMap[S]>;
+
+  readonly respond: Respond;
 }
 
-export interface PartialContext<R extends RangeSpec = RangeSpec> {
-  readonly rangeSet: readonly [R, ...readonly R[]];
+export interface Respond {
+  (context: RangeContext): Response | Promise<Response>;
+}
+
+export interface RangeContext {
+  readonly rangeUnit: string;
+  readonly rangeSet: RangeSet;
   readonly content: ArrayBuffer;
   readonly contentType: string;
 }
 
-export interface IsSatisfiableContext<R extends RangeSpec = RangeSpec> {
-  readonly rangeSet: readonly R[];
-  readonly content: ArrayBuffer;
-}
-
-export interface GetSatisfiableCallback<R extends RangeSpec = RangeSpec> {
-  (context: IsSatisfiableContext<R>): R[];
-}
-
-export interface PartialContent {
-  readonly content: BodyInit;
-  readonly headers: Headers;
-}
-
-export interface GetPartialCallback<R extends RangeSpec = RangeSpec> {
-  (context: PartialContext<R>): PartialContent | Promise<PartialContent>;
-}
-
-export type RangeUnit = "bytes" | "none";
+// deno-lint-ignore ban-types
+export type RangeUnit = "bytes" | "none" | string & {};

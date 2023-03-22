@@ -1,30 +1,12 @@
-import {
-  isIntRange,
-  isOtherRange,
-  NoContentHeaders,
-  RangeHeader,
-  type RangeSpec,
-  Status,
-} from "./deps.ts";
+// Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
+// This module is browser compatible.
+
+import { NoContentHeaders, RangeHeader, Status } from "./deps.ts";
+import { type ContentRange, stringify } from "./content_range.ts";
 
 export const enum RangeUnit {
   Bytes = "bytes",
   None = "none",
-}
-
-export const enum Specifier {
-  IntRange = "int-range",
-  SuffixRange = "suffix-range",
-  OtherRange = "other-range",
-}
-
-export function toSpecifier(
-  rangeSpec: RangeSpec,
-): Specifier {
-  if (isOtherRange(rangeSpec)) return Specifier.OtherRange;
-  if (isIntRange(rangeSpec)) return Specifier.IntRange;
-
-  return Specifier.SuffixRange;
 }
 
 /** Shallow merge two headers. */
@@ -36,11 +18,6 @@ export function shallowMergeHeaders(left: Headers, right: Headers): Headers {
   return lHeader;
 }
 
-interface ContentRange {
-  readonly rangeUnit: string;
-  readonly completeLength: number;
-}
-
 export class RequestedRangeNotSatisfiableResponse extends Response {
   constructor(
     contentRange: ContentRange,
@@ -50,8 +27,8 @@ export class RequestedRangeNotSatisfiableResponse extends Response {
     const headers = new NoContentHeaders(init?.headers);
 
     if (!headers.has(RangeHeader.ContentRange)) {
-      const contentRangeStr =
-        `${contentRange.rangeUnit} */${contentRange.completeLength}`;
+      const contentRangeStr = stringify(contentRange);
+
       headers.set(RangeHeader.ContentRange, contentRangeStr);
     }
 
