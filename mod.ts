@@ -11,4 +11,9 @@ export {
   type RangeSpec,
   type SuffixRange,
 } from "./deps.ts";
-export { type Range, type RangeContext, type Respond } from "./types.ts";
+export {
+  type BytesContext,
+  BytesRange,
+  type ComputeBoundary,
+} from "./ranges/bytes.ts";
+export type { Range, RangeContext, Respond } from "./types.ts";

@@ -19,25 +19,37 @@ import { RangeUnit } from "../utils.ts";
 import { multipartByteranges } from "./utils.ts";
 import { type InclRange, stringify } from "../content_range.ts";
 
-export interface Options {
-  readonly computeBoundary?: ComputeBoundary;
+/** Context for bytes range. */
+export interface BytesContext {
+  /** Boundary delimiter computation function. */
+  readonly computeBoundary: ComputeBoundary;
 }
 
+/** Boundary delimiter computation API. */
+export interface ComputeBoundary {
+  (content: ArrayBuffer): string | Promise<string>;
+}
+
+/** {@link Range} implementation for `bytes` range unit.
+ * It support single and multiple range request.
+ * @see https://www.rfc-editor.org/rfc/rfc9110#section-14.1.2
+ */
 export class BytesRange implements Range {
-  constructor(options?: Options) {
+  #boundary: ComputeBoundary;
+  constructor(options?: Partial<BytesContext>) {
     this.#boundary = options?.computeBoundary ?? digestSha1;
   }
 
   unit = RangeUnit.Bytes;
-  #boundary: ComputeBoundary;
 
   respond(context: RangeContext): Promise<Response> {
     return respondPartial({ ...context, computeBoundary: this.#boundary });
   }
 }
 
+/** Make partial response from context. */
 export async function respondPartial(
-  context: RangeContext & { computeBoundary: ComputeBoundary },
+  context: RangeContext & BytesContext,
 ): Promise<Response> {
   const { content, contentType, rangeUnit } = context;
   const size = content.byteLength;
@@ -95,6 +107,7 @@ export async function respondPartial(
   });
 }
 
+/** Whether the range spec is satisfiable or not. */
 export function isSatisfiable(
   rangeSpec: IntRange | SuffixRange,
   contentLength: number,
@@ -114,6 +127,7 @@ export function isSupportedRanceSpec(
   return !isOtherRange(rangeSpec);
 }
 
+/** Convert {@link RangeSpec} into {@link InclRange}. */
 export function rangeSpec2InclRange(
   rangeSpec: IntRange | SuffixRange,
   completeLength: number,
@@ -133,10 +147,6 @@ export function rangeSpec2InclRange(
   const lastPos = completeLength ? completeLength - 1 : 0;
 
   return { firstPos, lastPos };
-}
-
-export interface ComputeBoundary {
-  (content: ArrayBuffer): string | Promise<string>;
 }
 
 export async function digestSha1(content: ArrayBuffer): Promise<string> {
