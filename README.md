@@ -1,21 +1,17 @@
 # range-request-middleware
 
-[![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/range_middleware)
-[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/range_middleware/mod.ts)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/httpland/range-middleware)](https://github.com/httpland/range-middleware/releases)
-[![codecov](https://codecov.io/github/httpland/range-middleware/branch/main/graph/badge.svg)](https://codecov.io/gh/httpland/range-middleware)
-[![GitHub](https://img.shields.io/github/license/httpland/range-middleware)](https://github.com/httpland/range-middleware/blob/main/LICENSE)
+[![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/range_request-middleware)
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/range_request-middleware/mod.ts)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/httpland/range-request-middleware)](https://github.com/httpland/range-request-middleware/releases)
+[![codecov](https://codecov.io/github/httpland/range-request-middleware/branch/main/graph/badge.svg)](https://codecov.io/gh/httpland/range-request-middleware)
+[![GitHub](https://img.shields.io/github/license/httpland/range-request-middleware)](https://github.com/httpland/range-request-middleware/blob/main/LICENSE)
 
-[![test](https://github.com/httpland/range-middleware/actions/workflows/test.yaml/badge.svg)](https://github.com/httpland/range-middleware/actions/workflows/test.yaml)
-[![NPM](https://nodei.co/npm/@httpland/range-middleware.png?mini=true)](https://nodei.co/npm/@httpland/range-middleware/)
+[![test](https://github.com/httpland/range-request-middleware/actions/workflows/test.yaml/badge.svg)](https://github.com/httpland/range-request-middleware/actions/workflows/test.yaml)
+[![NPM](https://nodei.co/npm/@httpland/range-request-middleware.png?mini=true)](https://nodei.co/npm/@httpland/range-request-middleware/)
 
 HTTP range request middleware.
 
-## What
-
 Handles range request and partial response.
-
-This allows handlers to enable partial responses.
 
 Compliant with
 [RFC 9110, 14. Range Requests](https://www.rfc-editor.org/rfc/rfc9110#section-14)
@@ -23,17 +19,15 @@ Compliant with
 ## Usage
 
 Upon receipt of a range request, if the response [satisfies](#satisfiable) the
-range requirement [converts](#conversion) it to a partial response.
-
-Headers and status code will be modified accordingly.
+range requirement, [merge](#merging) it to a partial response.
 
 ```ts
-import { rangeRequest } from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
+import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
 import {
   assert,
   assertEquals,
   assertThrows,
-} from "https://deno.land/std@0.178.0/testing/asserts.ts";
+} from "https://deno.land/std/testing/asserts.ts";
 
 const middleware = rangeRequest();
 const request = new Request("test:", {
@@ -62,16 +56,18 @@ fghij
 
 ## Multi-range request
 
-For multi-range request, this will be converted to a multipart message body with
-`multipart/byteranges`.
+For multi-range request, response body will convert to a multipart content.
+
+It compliant with
+[RFC 9110, 14.6. Media Type multipart/byteranges](https://www.rfc-editor.org/rfc/rfc9110.html#name-media-type-multipart-bytera).
 
 ```ts
-import { rangeRequest } from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
+import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
 import {
   assert,
   assertEquals,
   assertThrows,
-} from "https://deno.land/std@0.178.0/testing/asserts.ts";
+} from "https://deno.land/std/testing/asserts.ts";
 
 const middleware = rangeRequest();
 const request = new Request("test:", {
@@ -142,18 +138,18 @@ execute.
 
 If the following conditions are **not met**,
 [invalid](https://www.rfc-editor.org/rfc/rfc9110#section-14.2-6) and the
-response is not modified in any way.
+response will not modify.
 
 - Request method is `GET`.
-- Request does not have an `If-Range` header
-- Request has a `Range` header
+- Request has `Range` header
+- Request does not include `If-Range` header
 - Request `Range` header is valid syntax
 - Request `Range` header is valid semantics
-- Response status code is `200`.
-- Response `Content-Type` header is present
-- Response has `Accept-Ranges` header is not present, or if present, its value
-  is not `none`.
-- The body of the Response is readable.
+- Response status code is `200`
+- Response does not include `Content-Range` header
+- Response does not include `Accept-Ranges` header or its value is not `none`
+- Response includes `Content-Type` header
+- Response body is readable
 
 Note that if there is an `If-Range` header, do nothing.
 
@@ -170,23 +166,22 @@ it is not possible to meet partial response.
   defined in the indicated
   [range-unit](https://www.rfc-editor.org/rfc/rfc9110#range.units)
 
-In this case, the handler response is [converted](#conversion) to
+In this case, the handler response will [merge](#merging) to
 [416(Range Not Satisfiable)](https://www.rfc-editor.org/rfc/rfc9110#status.416)
 response.
 
 A example of how unsatisfiable can happen:
 
-We receive `<range-unit>` and `<range-specifier>` as `Range` headers, which
-conform to the syntax but are not supported.
+If receive un unknown range unit.
 
 ```ts
 import {
   type Handler,
   rangeRequest,
-} from "https://deno.land/x/range_middleware@$VERSION/mod.ts";
-import { assertEquals } from "https://deno.land/std@0.178.0/testing/asserts.ts";
-declare const handler: Handler;
+} from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
+import { assert, assertEquals } from "https://deno.land/std/testing/asserts.ts";
 
+declare const handler: Handler;
 const middleware = rangeRequest();
 const response = await middleware(
   new Request("test:", { headers: { range: "<unknown-unit>=<other-range>" } }),
@@ -194,32 +189,58 @@ const response = await middleware(
 );
 
 assertEquals(response.status, 416);
+assert(response.headers.has("content-range"));
 ```
 
 ## Satisfiable
 
 If the [conditions](#conditions) and [unsatisfiable](#unsatisfiable) are met,
 [satisfiable](https://www.rfc-editor.org/rfc/rfc9110#satisfiable), and partial
-response is made.
+response will return.
 
-### Conversion
+The handler response will [merge](#merging) to
+[206(Partial Content)](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.7)
+response.
 
-Conversion refers to changing the handler response to the appropriate response.
+## Merging
 
-Specifically, the handler response and the appropriate response are shallow
-merged with the appropriate response taking priority over the handler response.
+The response of the handler and the response of [Range.respond](#range) will
+merge .
 
-Shallow merge targets are as follows:
+The following elements are merged shallowly, giving priority to the `Response`
+of [Range.respond](#range).
 
 - HTTP Status code
 - HTTP Content
 - HTTP Headers
 
-If status code or body conflicts, it will be replaced by its value in the
-appropriate response.
+## Range
 
-If header fields conflict, the header will be replaced by its value in the
-appropriate response header.
+`Range` abstracts partial response.
+
+Middleware factories can accept `Range` objects and implement own range request
+protocols.
+
+`Range` is the following structure:
+
+| Name    | Type      | Description                                                                              |
+| ------- | --------- | ---------------------------------------------------------------------------------------- |
+| unit    | `string`  | Corresponding range unit.                                                                |
+| respond | `Respond` | Takes the context of a range request and handler response and return a partial response. |
+
+The middleware supports the following range request protocols by default:
+
+- `bytes`([ByteRange](#byterange))
+
+### ByteRange
+
+`bytes` range unit is used to express subranges of a representation data's octet
+sequence.
+
+ByteRange supports single and multiple range requests.
+
+Compliant with
+[RFC 9110, 14.1.2. Byte Ranges](https://www.rfc-editor.org/rfc/rfc9110.html#section-14.1.2).
 
 ## Effects
 
@@ -227,6 +248,7 @@ Middleware may make changes to the following HTTP messages:
 
 - HTTP Content
 - HTTP Headers
+  - Accept-Ranges
   - Content-Range
   - Content-Type
 - HTTP Status code
