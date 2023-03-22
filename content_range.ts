@@ -1,3 +1,8 @@
+// Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
+// This module is browser compatible.
+
+// TODO:(miyauci) Packaging and externalization this module.
+
 import { isNumber } from "./deps.ts";
 
 export interface ContentRange {
