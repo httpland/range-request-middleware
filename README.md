@@ -1,7 +1,7 @@
 # range-request-middleware
 
-[![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/range_request-middleware)
-[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/range_request-middleware/mod.ts)
+[![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/range_request_middleware)
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/range_request_middleware/mod.ts)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/httpland/range-request-middleware)](https://github.com/httpland/range-request-middleware/releases)
 [![codecov](https://codecov.io/github/httpland/range-request-middleware/branch/main/graph/badge.svg)](https://codecov.io/gh/httpland/range-request-middleware)
 [![GitHub](https://img.shields.io/github/license/httpland/range-request-middleware)](https://github.com/httpland/range-request-middleware/blob/main/LICENSE)
