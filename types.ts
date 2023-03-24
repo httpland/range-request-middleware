@@ -9,12 +9,7 @@ export interface Range {
   readonly rangeUnit: string;
 
   /** Takes the context of a range request and handler response and return a partial response. */
-  readonly respond: RangeRespond;
-}
-
-/** Range responding API. */
-export interface RangeRespond {
-  (context: RangeContext): Response | Promise<Response>;
+  respond(context: RangeContext): Response | Promise<Response>;
 }
 
 /** Context of range request and response. */
