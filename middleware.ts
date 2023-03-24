@@ -14,8 +14,6 @@ import { BytesRange } from "./ranges/bytes.ts";
 import { RangeUnit } from "./utils.ts";
 import type { Range } from "./types.ts";
 
-const DefaultRanges = [new BytesRange()];
-
 /** Create range request middleware.
  *
  * @example
@@ -43,12 +41,9 @@ const DefaultRanges = [new BytesRange()];
  * ```
  */
 export function rangeRequest(
-  /**
-   * @default {@link DefaultRanges}
-   */
   ranges?: Iterable<Range>,
 ): Middleware {
-  const $ranges = ranges ?? DefaultRanges;
+  const $ranges = ranges ?? [new BytesRange()];
   const units = Array.from($ranges).map((range) => range.rangeUnit);
   const unitLike = isNotEmpty(units) ? units : RangeUnit.None;
 
@@ -64,7 +59,7 @@ export function rangeRequest(
 }
 
 export function contentRange(ranges?: Iterable<Range>): Middleware {
-  const $ranges = ranges ?? DefaultRanges;
+  const $ranges = ranges ?? [new BytesRange()];
 
   return async (request, next) => {
     const rangeValue = request.headers.get(RangeHeader.Range);
