@@ -223,16 +223,16 @@ protocols.
 
 `Range` is the following structure:
 
-| Name      | Type           | Description                                                                              |
-| --------- | -------------- | ---------------------------------------------------------------------------------------- |
-| rangeUnit | `string`       | Corresponding range unit.                                                                |
-| respond   | `RangeRespond` | Takes the context of a range request and handler response and return a partial response. |
+| Name      | Type                                                                                      | Description                                 |
+| --------- | ----------------------------------------------------------------------------------------- | ------------------------------------------- |
+| rangeUnit | `string`                                                                                  | Corresponding range unit.                   |
+| respond   | `(response: Response, context: RangesSpecifier) =>` `Response` &#124; `Promise<Response>` | Return response from range request context. |
 
 The middleware supports the following range request protocols by default:
 
-- `bytes`([ByteRange](#byterange))
+- `bytes`([ByteRanges](#bytesrange))
 
-### ByteRange
+### BytesRange
 
 `bytes` range unit is used to express subranges of a representation data's octet
 sequence.
@@ -241,6 +241,32 @@ ByteRange supports single and multiple range requests.
 
 Compliant with
 [RFC 9110, 14.1.2. Byte Ranges](https://www.rfc-editor.org/rfc/rfc9110.html#section-14.1.2).
+
+```ts
+import {
+  BytesRange,
+  type IntRange,
+  type SuffixRange,
+} from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
+import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
+
+const bytesRange = new BytesRange();
+const rangeUnit = "bytes";
+declare const initResponse: Response;
+declare const rangeSet: [IntRange, SuffixRange];
+
+const response = await bytesRange.respond(initResponse, {
+  rangeUnit,
+  rangeSet,
+});
+
+assertEquals(bytesRange.rangeUnit, rangeUnit);
+assertEquals(response.status, 206);
+assertEquals(
+  response.headers.get("content-type"),
+  "multipart/byteranges; boundary=<BOUNDARY>",
+);
+```
 
 ## Effects
 

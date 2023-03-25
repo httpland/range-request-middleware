@@ -6,7 +6,6 @@ import {
   isErr,
   isNull,
   isString,
-  NoContentHeaders,
   parse,
   RangeHeader,
   RepresentationHeader,
@@ -16,7 +15,6 @@ import {
 import {
   RangeUnit as Unit,
   RequestedRangeNotSatisfiableResponse,
-  shallowMergeHeaders,
 } from "./utils.ts";
 import { type Range, RangeUnit } from "./types.ts";
 
@@ -79,20 +77,5 @@ export async function withContentRange(
     }, { headers: response.headers });
   }
 
-  const partialResponse = await matchedRange.respond({
-    content: body,
-    contentType,
-    rangeUnit: parsedRange.rangeUnit,
-    rangeSet: parsedRange.rangeSet,
-  });
-
-  const baseHeaders = !partialResponse.body
-    ? new NoContentHeaders(response.headers)
-    : response.headers;
-  const headers = shallowMergeHeaders(baseHeaders, partialResponse.headers);
-
-  return new Response(partialResponse.body, {
-    headers,
-    status: partialResponse.status,
-  });
+  return matchedRange.respond(response, parsedRange);
 }

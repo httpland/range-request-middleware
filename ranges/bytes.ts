@@ -5,17 +5,23 @@ import {
   type IntRange,
   isIntRange,
   isNotEmpty,
+  isNull,
   isNumber,
   isOtherRange,
   RangeHeader,
   type RangeSpec,
+  RangesSpecifier,
   RepresentationHeader,
   Status,
   type SuffixRange,
   toHashString,
 } from "../deps.ts";
-import type { Range, RangeContext } from "../types.ts";
-import { RangeUnit } from "../utils.ts";
+import type { Range } from "../types.ts";
+import {
+  RangeUnit,
+  RequestedRangeNotSatisfiableResponse,
+  shallowMergeHeaders,
+} from "../utils.ts";
 import { multipartByteranges } from "./utils.ts";
 import { type InclRange, stringify } from "../content_range.ts";
 
@@ -33,6 +39,33 @@ export interface ComputeBoundary {
 /** {@link Range} implementation for `bytes` range unit.
  * It support single and multiple range request.
  * @see https://www.rfc-editor.org/rfc/rfc9110#section-14.1.2
+ *
+ * @example
+ * ```ts
+ * import {
+ *   BytesRange,
+ *   type IntRange,
+ *   type SuffixRange,
+ * } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
+ * import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
+ *
+ * const bytesRange = new BytesRange();
+ * const rangeUnit = "bytes";
+ * declare const initResponse: Response;
+ * declare const rangeSet: [IntRange, SuffixRange];
+ *
+ * const response = await bytesRange.respond(initResponse, {
+ *   rangeUnit,
+ *   rangeSet,
+ * });
+ *
+ * assertEquals(bytesRange.rangeUnit, rangeUnit);
+ * assertEquals(response.status, 206);
+ * assertEquals(
+ *   response.headers.get("content-type"),
+ *   "multipart/byteranges; boundary=<BOUNDARY>",
+ * );
+ * ```
  */
 export class BytesRange implements Range {
   #boundary: ComputeBoundary;
@@ -42,38 +75,48 @@ export class BytesRange implements Range {
 
   rangeUnit = RangeUnit.Bytes;
 
-  respond(context: RangeContext): Promise<Response> {
-    return respondPartial({ ...context, computeBoundary: this.#boundary });
+  respond(
+    response: Response,
+    context: RangesSpecifier,
+  ): Response | Promise<Response> {
+    if (context.rangeUnit !== this.rangeUnit) return response;
+
+    return createPartialResponse(response, {
+      ...context,
+      computeBoundary: this.#boundary,
+    });
   }
 }
 
-/** Make partial response from context. */
-export async function respondPartial(
-  context: RangeContext & BytesContext,
-): Promise<Response> {
-  const { content, contentType, rangeUnit } = context;
+/** Create partial response from response. */
+export async function createPartialResponse(
+  response: Response,
+  context: RangesSpecifier & BytesContext,
+) {
+  if (response.bodyUsed) return response;
+
+  const content = await response
+    .clone()
+    .arrayBuffer();
+
+  const { rangeUnit, rangeSet } = context;
   const size = content.byteLength;
-  const inclRanges = context.rangeSet
+  const inclRanges = rangeSet
     .filter(isSupportedRanceSpec)
     .filter(
       (rangeSpec) => isSatisfiable(rangeSpec, size),
     ).map((rangeSpec) => rangeSpec2InclRange(rangeSpec, size));
 
   if (!isNotEmpty(inclRanges)) {
-    const contentRange = stringify({
+    return new RequestedRangeNotSatisfiableResponse({
       rangeUnit,
       range: { completeLength: size },
-    });
-
-    return new Response(null, {
-      status: Status.RequestedRangeNotSatisfiable,
-      headers: { [RangeHeader.ContentRange]: contentRange },
-    });
+    }, { headers: response.headers });
   }
 
   if (inclRanges.length === 1) {
     const inclRange = inclRanges[0];
-    const partialBody = context.content.slice(
+    const partialBody = content.slice(
       inclRange.firstPos,
       inclRange.lastPos + 1,
     );
@@ -81,15 +124,18 @@ export async function respondPartial(
       rangeUnit: RangeUnit.Bytes,
       range: { ...inclRange, completeLength: size },
     });
+    const right = new Headers({ [RangeHeader.ContentRange]: contentRange });
+    const headers = shallowMergeHeaders(response.headers, right);
 
     return new Response(partialBody, {
       status: Status.PartialContent,
-      headers: {
-        [RangeHeader.ContentRange]: contentRange,
-        [RepresentationHeader.ContentType]: contentType,
-      },
+      headers,
     });
   }
+
+  const contentType = response.headers.get(RepresentationHeader.ContentType);
+
+  if (isNull(contentType)) return response;
 
   const boundary = await context.computeBoundary(content);
   const newContentType = `multipart/byteranges; boundary=${boundary}`;
@@ -100,11 +146,12 @@ export async function respondPartial(
     boundary,
     rangeUnit: RangeUnit.Bytes,
   });
-
-  return new Response(multipart, {
-    status: Status.PartialContent,
-    headers: { [RepresentationHeader.ContentType]: newContentType },
+  const right = new Headers({
+    [RepresentationHeader.ContentType]: newContentType,
   });
+  const headers = shallowMergeHeaders(response.headers, right);
+
+  return new Response(multipart, { status: Status.PartialContent, headers });
 }
 
 /** Whether the range spec is satisfiable or not. */

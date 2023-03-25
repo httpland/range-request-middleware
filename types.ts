@@ -8,17 +8,11 @@ export interface Range {
   /** Corresponding range unit. */
   readonly rangeUnit: string;
 
-  /** Takes the context of a range request and handler response and return a partial response. */
-  respond(context: RangeContext): Response | Promise<Response>;
-}
-
-/** Context of range request and response. */
-export interface RangeContext extends RangesSpecifier {
-  /** Full response content. */
-  readonly content: ArrayBuffer;
-
-  /** Response content type. */
-  readonly contentType: string;
+  /** Return response from range request context. */
+  respond(
+    response: Response,
+    context: RangesSpecifier,
+  ): Response | Promise<Response>;
 }
 
 // deno-lint-ignore ban-types

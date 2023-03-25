@@ -1,7 +1,13 @@
 // Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
 // This module is browser compatible.
 
-import { NoContentHeaders, RangeHeader, Status } from "./deps.ts";
+import {
+  filterKeys,
+  isRepresentationHeader,
+  not,
+  RangeHeader,
+  Status,
+} from "./deps.ts";
 import { type ContentRange, stringify } from "./content_range.ts";
 
 export const enum RangeUnit {
@@ -24,7 +30,10 @@ export class RequestedRangeNotSatisfiableResponse extends Response {
     init?: Omit<ResponseInit, "status"> | undefined,
   ) {
     const { statusText } = init ?? {};
-    const headers = new NoContentHeaders(init?.headers);
+    const headers = filterKeys(
+      new Headers(init?.headers),
+      not(isRepresentationHeader),
+    );
 
     if (!headers.has(RangeHeader.ContentRange)) {
       const contentRangeStr = stringify(contentRange);

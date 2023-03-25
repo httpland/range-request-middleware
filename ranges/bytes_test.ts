@@ -1,9 +1,9 @@
 import {
   BytesRange,
+  createPartialResponse,
   isSatisfiable,
   isSupportedRanceSpec,
   rangeSpec2InclRange,
-  respondPartial,
 } from "./bytes.ts";
 import {
   assert,
@@ -114,12 +114,28 @@ describe("isSupportedRanceSpec", () => {
   });
 });
 
-describe("respondPartial", () => {
+describe("createPartialResponse", () => {
+  it("should return same response if the response has read", async () => {
+    const computeBoundary = spy(() => "");
+    const initResponse = new Response("");
+
+    await initResponse.text();
+
+    assert(initResponse.bodyUsed);
+
+    const response = await createPartialResponse(initResponse, {
+      computeBoundary,
+      rangeSet: [""],
+      rangeUnit: "bytes",
+    });
+
+    assertSpyCalls(computeBoundary, 0);
+    assert(response === initResponse);
+  });
+
   it("should return 413 response if the satisfied range set is none", async () => {
     const computeBoundary = spy(() => "");
-    const response = await respondPartial({
-      content: new ArrayBuffer(10),
-      contentType: "",
+    const response = await createPartialResponse(new Response("abcd"), {
       computeBoundary,
       rangeSet: [""],
       rangeUnit: "bytes",
@@ -131,7 +147,7 @@ describe("respondPartial", () => {
         response,
         new Response(null, {
           status: Status.RequestedRangeNotSatisfiable,
-          headers: { [RangeHeader.ContentRange]: "bytes */10" },
+          headers: { [RangeHeader.ContentRange]: "bytes */4" },
         }),
         true,
       ),
@@ -140,9 +156,7 @@ describe("respondPartial", () => {
 
   it("should return 413 response if the satisfied range set is none", async () => {
     const computeBoundary = spy(() => "");
-    const response = await respondPartial({
-      content: new ArrayBuffer(0),
-      contentType: "",
+    const response = await createPartialResponse(new Response(), {
       computeBoundary,
       rangeSet: [{ firstPos: 0, lastPos: 4 }],
       rangeUnit: "bytes",
@@ -165,13 +179,18 @@ describe("respondPartial", () => {
     const computeBoundary = spy(() => "");
 
     const content = "abcdefghij";
-    const response = await respondPartial({
-      content: new TextEncoder().encode(content),
-      contentType: "text/test",
-      computeBoundary,
-      rangeSet: [{ firstPos: 3, lastPos: 5 }],
-      rangeUnit: "bytes",
-    });
+    const response = await createPartialResponse(
+      new Response(content, {
+        headers: {
+          [RepresentationHeader.ContentType]: "text/test",
+        },
+      }),
+      {
+        computeBoundary,
+        rangeSet: [{ firstPos: 3, lastPos: 5 }],
+        rangeUnit: "bytes",
+      },
+    );
 
     assertSpyCalls(computeBoundary, 0);
     assert(
@@ -193,15 +212,20 @@ describe("respondPartial", () => {
     const computeBoundary = spy(() => "xxx");
 
     const content = "abcdefghij";
-    const response = await respondPartial({
-      content: new TextEncoder().encode(content),
-      contentType: "text/test",
-      computeBoundary,
-      rangeSet: [{ firstPos: 40, lastPos: 5 }, { firstPos: 3, lastPos: 5 }, {
-        suffixLength: 100,
-      }, ""],
-      rangeUnit: "bytes",
-    });
+    const response = await createPartialResponse(
+      new Response(content, {
+        headers: {
+          [RepresentationHeader.ContentType]: "text/test",
+        },
+      }),
+      {
+        computeBoundary,
+        rangeSet: [{ firstPos: 40, lastPos: 5 }, { firstPos: 3, lastPos: 5 }, {
+          suffixLength: 100,
+        }, ""],
+        rangeUnit: "bytes",
+      },
+    );
 
     assertSpyCalls(computeBoundary, 1);
 
@@ -238,5 +262,50 @@ describe("BytesRange", () => {
 
   it("should unit is bytes", () => {
     assertEquals(bytesRange.rangeUnit, "bytes");
+  });
+
+  it("should return same response if the context of range unit is not bytes", async () => {
+    const initResponse = new Response();
+    const response = await bytesRange.respond(initResponse, {
+      rangeUnit: "unknown",
+      rangeSet: [{ firstPos: 0, lastPos: undefined }, { suffixLength: 1 }],
+    });
+
+    assert(initResponse === response);
+  });
+
+  it("should override computeBoundary function", async () => {
+    const bytesRange = new BytesRange({ computeBoundary: () => "test" });
+
+    const response = await bytesRange.respond(new Response("abcd"), {
+      rangeUnit: "bytes",
+      rangeSet: [{ firstPos: 0, lastPos: undefined }, { suffixLength: 1 }],
+    });
+
+    const content = `--test
+Content-Type: text/plain;charset=UTF-8
+Content-Range: bytes 0-3/4
+
+abcd
+--test
+Content-Type: text/plain;charset=UTF-8
+Content-Range: bytes 3-3/4
+
+d
+--test--`;
+
+    assert(
+      await equalsResponse(
+        response,
+        new Response(content, {
+          status: Status.PartialContent,
+          headers: {
+            [RepresentationHeader.ContentType]:
+              "multipart/byteranges; boundary=test",
+          },
+        }),
+        true,
+      ),
+    );
   });
 });
