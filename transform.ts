@@ -15,6 +15,8 @@ import {
   RangeUnit as Unit,
   RequestedRangeNotSatisfiableResponse,
 } from "./utils.ts";
+import { hasToken } from "./accept_range.ts";
+
 import { type Range, RangeUnit } from "./types.ts";
 
 export type UnitLike =
@@ -47,9 +49,14 @@ export async function withContentRange(
   if (
     response.status !== Status.OK ||
     response.headers.has(RangeHeader.ContentRange) ||
-    response.headers.get(RangeHeader.AcceptRanges) === Unit.None ||
     response.bodyUsed
   ) return response;
+
+  const acceptRanges = response.headers.get(RangeHeader.AcceptRanges);
+
+  if (isString(acceptRanges) && hasToken(acceptRanges, Unit.None)) {
+    return response;
+  }
 
   const rangeContainer = unsafe(() => parse(context.rangeValue));
 

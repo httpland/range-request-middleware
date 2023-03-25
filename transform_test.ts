@@ -6,7 +6,6 @@ import {
   equalsResponse,
   it,
   RangeHeader,
-  RepresentationHeader,
   spy,
   Status,
 } from "./_dev_deps.ts";
@@ -39,20 +38,6 @@ describe("withContentRange", () => {
     assert(response === initResponse);
   });
 
-  it("should return same response if the response has accept-ranges header and the value is none", async () => {
-    const respond = spy(() => new Response());
-    const initResponse = new Response("", {
-      headers: { [RangeHeader.AcceptRanges]: "none" },
-    });
-
-    const response = await withContentRange(initResponse, {
-      rangeValue: "",
-      ranges: [{ rangeUnit: "bytes", respond }],
-    });
-
-    assert(response === initResponse);
-  });
-
   it("should return same response if the response body has read", async () => {
     const respond = spy(() => new Response());
     const initResponse = new Response("");
@@ -69,12 +54,11 @@ describe("withContentRange", () => {
     assert(response === initResponse);
   });
 
-  it("should return same response if the response does not have content-type header", async () => {
+  it("should return same response if the response has accept-ranges header and the value is none", async () => {
     const respond = spy(() => new Response());
-    const initResponse = new Response("");
-
-    initResponse.headers.delete(RepresentationHeader.ContentType);
-    assert(!initResponse.headers.has(RepresentationHeader.ContentType));
+    const initResponse = new Response("", {
+      headers: { [RangeHeader.AcceptRanges]: "none" },
+    });
 
     const response = await withContentRange(initResponse, {
       rangeValue: "",
@@ -125,6 +109,33 @@ describe("withContentRange", () => {
 
   it("should return response what merge respond response and init response", async () => {
     const initResponse = new Response("");
+    const partialResponse = new Response();
+    const respond = spy(() => partialResponse);
+
+    const response = await withContentRange(
+      initResponse,
+      {
+        rangeValue: "bytes=0-",
+        ranges: [{ rangeUnit: "bytes", respond }],
+      },
+    );
+
+    assertSpyCalls(respond, 1);
+    assert(
+      await equalsResponse(
+        response,
+        partialResponse,
+        true,
+      ),
+    );
+  });
+
+  it("should ignore invalid accept-ranges", async () => {
+    const initResponse = new Response("", {
+      headers: {
+        [RangeHeader.AcceptRanges]: `"invalid", none`,
+      },
+    });
     const partialResponse = new Response();
     const respond = spy(() => partialResponse);
 
