@@ -3,7 +3,7 @@
 
 // TODO:(miyauci) Packaging and externalization this module.
 
-import { isNumber } from "./deps.ts";
+import { isNonNegativeInteger, isNumber } from "./deps.ts";
 
 export interface ContentRange {
   readonly rangeUnit: string;
@@ -25,7 +25,10 @@ export interface UnsatisfiedRange {
   readonly completeLength: number;
 }
 
-/** Deserialize {@link ContentRange} into string. */
+/** Deserialize {@link ContentRange} into string.
+ *
+ * @throws {TypeError} If the {@link ContentRange} is invalid.
+ */
 export function stringify(contentRange: ContentRange): string {
   const fmt = isRangeResp(contentRange.range)
     ? stringifyRangeResp(contentRange.range)
@@ -45,19 +48,61 @@ function stringifyRangeResp(rangeResp: RangeResp): string {
 function stringifyInclRange(inclRange: InclRange): string {
   const { firstPos, lastPos } = inclRange;
 
+  assertNonNegativeInteger(
+    firstPos,
+    Msg.InvalidNonNegativeInt(ABNF.FirstPos, firstPos),
+  );
+
+  assertNonNegativeInteger(
+    lastPos,
+    Msg.InvalidNonNegativeInt(ABNF.LastPos, lastPos),
+  );
+
   return `${firstPos}-${lastPos}`;
 }
 
 function stringifyContentLength(completeLength: number | undefined): string {
-  const length = isNumber(completeLength) ? completeLength : "*";
+  if (!isNumber(completeLength)) return "*";
 
-  return length.toString();
+  assertNonNegativeInteger(
+    completeLength,
+    Msg.InvalidNonNegativeInt(ABNF.CompleteLength, completeLength),
+  );
+
+  return completeLength.toString();
 }
 
 function stringifyUnsatisfiedRange(unsatisfiedRange: UnsatisfiedRange): string {
-  return `*/${unsatisfiedRange.completeLength}`;
+  const { completeLength } = unsatisfiedRange;
+
+  assertNonNegativeInteger(
+    completeLength,
+    Msg.InvalidNonNegativeInt(ABNF.CompleteLength, completeLength),
+  );
+
+  return `*/${completeLength}`;
 }
 
 function isRangeResp(rangeLike: RangeLike): rangeLike is RangeResp {
   return "firstPos" in rangeLike;
+}
+
+const enum ABNF {
+  CompleteLength = "<complete-length>",
+  FirstPos = "<first-pos>",
+  LastPos = "<last-pos>",
+}
+
+const Msg = {
+  InvalidNonNegativeInt: (subject: string, actual: unknown) =>
+    `${subject} is not non-negative integer. ${actual}`,
+};
+
+function assertNonNegativeInteger(
+  input: number,
+  msg?: string,
+): asserts input {
+  if (!isNonNegativeInteger(input)) {
+    throw TypeError(msg);
+  }
 }

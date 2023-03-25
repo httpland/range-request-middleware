@@ -3,6 +3,7 @@
 
 export { Status } from "https://deno.land/std@0.180.0/http/http_status.ts";
 export {
+  isNonNegativeInteger,
   isNull,
   isNumber,
   isString,
