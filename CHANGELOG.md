@@ -1,3 +1,18 @@
+# [1.0.0-beta.2](https://github.com/httpland/range-request-middleware/compare/1.0.0-beta.1...1.0.0-beta.2) (2023-03-25)
+
+
+### Bug Fixes
+
+* **transform:** change the range unit equality to case insensitive ([16d547e](https://github.com/httpland/range-request-middleware/commit/16d547e067a8c61eeb9400c2d49f01f7b2d440fc))
+
+
+### Features
+
+* **content_range:** add checking format of content-range header ([169b15d](https://github.com/httpland/range-request-middleware/commit/169b15d8d90fadaca9e8161c41c21e9fed84600c))
+* **mod:** remove unrelated types ([068dd87](https://github.com/httpland/range-request-middleware/commit/068dd87cdf0870eac0e6534a214423b6d61ca54f))
+* **types:** change range interface, update docs ([28b2da9](https://github.com/httpland/range-request-middleware/commit/28b2da91541b60365db43ebdaa7a120ff607cdac))
+* **types:** remove object method types ([2409a96](https://github.com/httpland/range-request-middleware/commit/2409a9648e3b68d6e620d75abd261498bf14b2d0))
+
 # 1.0.0-beta.1 (2023-03-24)
 
 
