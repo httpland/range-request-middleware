@@ -148,7 +148,6 @@ response will not [convert](#convert).
 - Response status code is `200`
 - Response does not include `Content-Range` header
 - Response does not include `Accept-Ranges` header or its value is not `none`
-- Response includes `Content-Type` header
 - Response body is readable
 
 Note that if there is an `If-Range` header, do nothing.

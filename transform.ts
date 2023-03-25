@@ -4,11 +4,9 @@
 import {
   distinct,
   isErr,
-  isNull,
   isString,
   parse,
   RangeHeader,
-  RepresentationHeader,
   Status,
   unsafe,
 } from "./deps.ts";
@@ -46,14 +44,11 @@ export async function withContentRange(
   response: Response,
   context: Context,
 ): Promise<Response> {
-  const contentType = response.headers.get(RepresentationHeader.ContentType);
-
   if (
     response.status !== Status.OK ||
     response.headers.has(RangeHeader.ContentRange) ||
     response.headers.get(RangeHeader.AcceptRanges) === Unit.None ||
-    response.bodyUsed ||
-    isNull(contentType)
+    response.bodyUsed
   ) return response;
 
   const rangeContainer = unsafe(() => parse(context.rangeValue));
