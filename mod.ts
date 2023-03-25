@@ -16,4 +16,4 @@ export {
   BytesRange,
   type ComputeBoundary,
 } from "./ranges/bytes.ts";
-export type { Range, RangeContext } from "./types.ts";
+export type { Range } from "./types.ts";
