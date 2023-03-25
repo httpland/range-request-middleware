@@ -19,7 +19,7 @@ Compliant with
 ## Usage
 
 Upon receipt of a range request, if the response [satisfies](#satisfiable) the
-range requirement, [merge](#merging) it to a partial response.
+range requirement, [convert](#convert) it to a partial response.
 
 ```ts
 import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
@@ -47,7 +47,7 @@ assertEquals(await response.text(), "fghij");
 yield:
 
 ```http
-HTTP/<VERSION> 206
+HTTP/1.1 206
 Content-Range: bytes 5-9/26
 Accept-Ranges: bytes
 
@@ -109,26 +109,26 @@ vwxyz
 yield:
 
 ```http
-HTTP/<VERSION> 206
-Content-Type: multipart/byteranges; boundary=<BOUNDARY-DELIMITER>
+HTTP/1.1 206
+Content-Type: multipart/byteranges; boundary=BOUNDARY
 Accept-Ranges: bytes
 
---<BOUNDARY-DELIMITER>
+--BOUNDARY
 Content-Type: text/plain;charset=UTF-8
 Content-Range: 5-9/26
 
 fghij
---<BOUNDARY-DELIMITER>
+--BOUNDARY
 Content-Type: text/plain;charset=UTF-8
 Content-Range: 20-25/26
 
 uvwxyz
---<BOUNDARY-DELIMITER>
+--BOUNDARY
 Content-Type: text/plain;charset=UTF-8
 Content-Range: 21-25/26
 
 vwxyz
---<BOUNDARY-DELIMITER>--
+--BOUNDARY--
 ```
 
 ## Conditions
@@ -138,10 +138,10 @@ execute.
 
 If the following conditions are **not met**,
 [invalid](https://www.rfc-editor.org/rfc/rfc9110#section-14.2-6) and the
-response will not modify.
+response will not [convert](#convert).
 
 - Request method is `GET`.
-- Request has `Range` header
+- Request includes `Range` header
 - Request does not include `If-Range` header
 - Request `Range` header is valid syntax
 - Request `Range` header is valid semantics
@@ -166,7 +166,7 @@ it is not possible to meet partial response.
   defined in the indicated
   [range-unit](https://www.rfc-editor.org/rfc/rfc9110#range.units)
 
-In this case, the handler response will [merge](#merging) to
+In this case, the handler response will [convert](#converting) to
 [416(Range Not Satisfiable)](https://www.rfc-editor.org/rfc/rfc9110#status.416)
 response.
 
@@ -195,24 +195,22 @@ assert(response.headers.has("content-range"));
 ## Satisfiable
 
 If the [conditions](#conditions) and [unsatisfiable](#unsatisfiable) are met,
-[satisfiable](https://www.rfc-editor.org/rfc/rfc9110#satisfiable), and partial
-response will return.
-
-The handler response will [merge](#merging) to
+[satisfiable](https://www.rfc-editor.org/rfc/rfc9110#satisfiable), and the
+response will [convert](#convert) to
 [206(Partial Content)](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.7)
 response.
 
-## Merging
+## Convert
 
-The response of the handler and the response of [Range.respond](#range) will
-merge .
+Convert means a change without side effects.
 
-The following elements are merged shallowly, giving priority to the `Response`
-of [Range.respond](#range).
+For example, "convert a response to the 206 response" means to return a new
+response in which some or all of the following elements have been replaced from
+the original response.
 
-- HTTP Status code
 - HTTP Content
-- HTTP Headers
+- HTTP Status code
+- HTTP Headers(shallow marge)
 
 ## Range
 
