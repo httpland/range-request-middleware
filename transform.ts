@@ -13,6 +13,7 @@ import {
   unsafe,
 } from "./deps.ts";
 import {
+  equalsCaseInsensitive,
   RangeUnit as Unit,
   RequestedRangeNotSatisfiableResponse,
 } from "./utils.ts";
@@ -65,7 +66,7 @@ export async function withContentRange(
 
   const parsedRange = rangeContainer.value;
   const matchedRange = Array.from(context.ranges).find(({ rangeUnit }) =>
-    rangeUnit === parsedRange.rangeUnit
+    equalsCaseInsensitive(rangeUnit, parsedRange.rangeUnit)
   );
   const body = await response.clone().arrayBuffer();
 

@@ -48,3 +48,10 @@ export class RequestedRangeNotSatisfiableResponse extends Response {
     });
   }
 }
+
+/** Whether the inputs are equal to case sensitivity. */
+export function equalsCaseInsensitive(left: string, right: string): boolean {
+  if (left === right) return true;
+
+  return !left.localeCompare(right, undefined, { sensitivity: "accent" });
+}
