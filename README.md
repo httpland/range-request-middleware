@@ -165,7 +165,7 @@ it is not possible to meet partial response.
   defined in the indicated
   [range-unit](https://www.rfc-editor.org/rfc/rfc9110#range.units)
 
-In this case, the handler response will [convert](#converting) to
+In this case, the handler response will [convert](#convert) to
 [416(Range Not Satisfiable)](https://www.rfc-editor.org/rfc/rfc9110#status.416)
 response.
 
