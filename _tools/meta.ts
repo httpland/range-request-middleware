@@ -46,17 +46,33 @@ export const makeOptions = (version: string): BuildOptions => ({
       name: "@httpland/http-middleware",
       version: "1.0.0",
     },
-    "https://deno.land/x/isx@1.0.0-beta.24/mod.ts": {
-      name: "isxx",
-      version: "1.0.0-beta.24",
+    "https://deno.land/x/isx@1.0.0/is_string.ts": {
+      name: "@miyauci/isx",
+      version: "1.0.0",
+      subPath: "is_string",
     },
-    "https://deno.land/x/http_utils@1.0.0-beta.13/header.ts": {
-      name: "@httpland/http-utils",
-      version: "1.0.0-beta.13",
+    "https://deno.land/x/isx@1.0.0/is_null.ts": {
+      name: "@miyauci/isx",
+      version: "1.0.0",
+      subPath: "is_null",
     },
-    "https://deno.land/x/http_utils@1.0.0-beta.13/method.ts": {
+    "https://deno.land/x/isx@1.0.0/is_number.ts": {
+      name: "@miyauci/isx",
+      version: "1.0.0",
+      subPath: "is_number",
+    },
+    "https://deno.land/x/isx@1.0.0/number/is_non_negative_integer.ts": {
+      name: "@miyauci/isx",
+      version: "1.0.0",
+      subPath: "number/is_non_negative_integer",
+    },
+    "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts": {
       name: "@httpland/http-utils",
-      version: "1.0.0-beta.13",
+      version: "1.0.0-beta.14",
+    },
+    "https://deno.land/x/http_utils@1.0.0-beta.14/method.ts": {
+      name: "@httpland/http-utils",
+      version: "1.0.0-beta.14",
     },
     "https://deno.land/x/result_js@1.0.0/mod.ts": {
       name: "@miyauci/result",

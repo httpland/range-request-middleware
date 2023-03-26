@@ -2,12 +2,10 @@
 // This module is browser compatible.
 
 export { Status } from "https://deno.land/std@0.180.0/http/http_status.ts";
-export {
-  isNonNegativeInteger,
-  isNull,
-  isNumber,
-  isString,
-} from "https://deno.land/x/isx@1.0.0-beta.24/mod.ts";
+export { isString } from "https://deno.land/x/isx@1.0.0/is_string.ts";
+export { isNull } from "https://deno.land/x/isx@1.0.0/is_null.ts";
+export { isNumber } from "https://deno.land/x/isx@1.0.0/is_number.ts";
+export { isNonNegativeInteger } from "https://deno.land/x/isx@1.0.0/number/is_non_negative_integer.ts";
 export {
   type Handler,
   type Middleware,
@@ -19,7 +17,7 @@ export {
   RangeHeader,
   RepresentationHeader,
 } from "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts";
-export { Method } from "https://deno.land/x/http_utils@1.0.0-beta.13/method.ts";
+export { Method } from "https://deno.land/x/http_utils@1.0.0-beta.14/method.ts";
 export { isErr, unsafe } from "https://deno.land/x/result_js@1.0.0/mod.ts";
 export {
   type IntRange,
