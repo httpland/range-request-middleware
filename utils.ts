@@ -1,30 +1,18 @@
+// Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
+// This module is browser compatible.
+
 import {
-  isIntRange,
-  isOtherRange,
-  NoContentHeaders,
+  filterKeys,
+  isRepresentationHeader,
+  not,
   RangeHeader,
-  type RangeSpec,
   Status,
 } from "./deps.ts";
+import { type ContentRange, stringify } from "./content_range.ts";
 
 export const enum RangeUnit {
   Bytes = "bytes",
   None = "none",
-}
-
-export const enum Specifier {
-  IntRange = "int-range",
-  SuffixRange = "suffix-range",
-  OtherRange = "other-range",
-}
-
-export function toSpecifier(
-  rangeSpec: RangeSpec,
-): Specifier {
-  if (isOtherRange(rangeSpec)) return Specifier.OtherRange;
-  if (isIntRange(rangeSpec)) return Specifier.IntRange;
-
-  return Specifier.SuffixRange;
 }
 
 /** Shallow merge two headers. */
@@ -36,22 +24,20 @@ export function shallowMergeHeaders(left: Headers, right: Headers): Headers {
   return lHeader;
 }
 
-interface ContentRange {
-  readonly rangeUnit: string;
-  readonly completeLength: number;
-}
-
 export class RequestedRangeNotSatisfiableResponse extends Response {
   constructor(
     contentRange: ContentRange,
     init?: Omit<ResponseInit, "status"> | undefined,
   ) {
     const { statusText } = init ?? {};
-    const headers = new NoContentHeaders(init?.headers);
+    const headers = filterKeys(
+      new Headers(init?.headers),
+      not(isRepresentationHeader),
+    );
 
     if (!headers.has(RangeHeader.ContentRange)) {
-      const contentRangeStr =
-        `${contentRange.rangeUnit} */${contentRange.completeLength}`;
+      const contentRangeStr = stringify(contentRange);
+
       headers.set(RangeHeader.ContentRange, contentRangeStr);
     }
 
@@ -61,4 +47,11 @@ export class RequestedRangeNotSatisfiableResponse extends Response {
       headers,
     });
   }
+}
+
+/** Whether the inputs are equal to case sensitivity. */
+export function equalsCaseInsensitive(left: string, right: string): boolean {
+  if (left === right) return true;
+
+  return !left.localeCompare(right, undefined, { sensitivity: "accent" });
 }

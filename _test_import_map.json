@@ -1,5 +1,6 @@
 {
   "imports": {
-    "https://deno.land/x/range_middleware@$VERSION/": "./"
+    "https://deno.land/x/range_request_middleware@$VERSION/": "./",
+    "https://deno.land/std/testing/asserts.ts": "https://deno.land/std@0.180.0/testing/asserts.ts"
   }
 }

@@ -1,261 +1,157 @@
 import { withAcceptRanges, withContentRange } from "./transform.ts";
 import {
   assert,
-  ConditionalHeader,
+  assertSpyCalls,
   describe,
   equalsResponse,
   it,
   RangeHeader,
+  spy,
   Status,
 } from "./_dev_deps.ts";
 import type { RangeUnit } from "./types.ts";
-import { Specifier } from "./utils.ts";
 
 describe("withContentRange", () => {
-  describe("should return same response", () => {
-    it("if the request is not GET method", async () => {
-      const initResponse = new Response();
-      const response = await withContentRange(
-        new Request("test:", { method: "HEAD" }),
-        initResponse,
-        { ranges: [] },
-      );
+  it("should return same response if the response is not ok", async () => {
+    const respond = spy(() => new Response());
+    const initResponse = new Response("", { status: Status.NotFound });
 
-      assert(initResponse === response);
+    const response = await withContentRange(initResponse, {
+      rangeValue: "",
+      ranges: [{ rangeUnit: "bytes", respond }],
     });
 
-    it("if the Range header does not exist in request", async () => {
-      const initResponse = new Response();
-      const response = await withContentRange(
-        new Request("test:"),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(initResponse === response);
-    });
-
-    it("if the If-Range header exists in request", async () => {
-      const initResponse = new Response();
-      const response = await withContentRange(
-        new Request("test:", {
-          headers: {
-            [RangeHeader.Range]: "bytes=0-",
-            [ConditionalHeader.IfRange]: "",
-          },
-        }),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(initResponse === response);
-    });
-
-    it("if the response is not ok", async () => {
-      const initResponse = new Response(null, {
-        status: Status.NotFound,
-        headers: { [RangeHeader.ContentRange]: "" },
-      });
-      const response = await withContentRange(
-        new Request("test:", {
-          headers: { [RangeHeader.Range]: "bytes=0-" },
-        }),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(initResponse === response);
-    });
-
-    it("if the Content-Range header exists in response", async () => {
-      const initResponse = new Response(null, {
-        headers: { [RangeHeader.ContentRange]: "" },
-      });
-      const response = await withContentRange(
-        new Request("test:", {
-          headers: { [RangeHeader.Range]: "bytes=0-" },
-        }),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(initResponse === response);
-    });
-
-    it("if the Accept-Ranges header is none in response", async () => {
-      const initResponse = new Response(null, {
-        headers: { [RangeHeader.AcceptRanges]: "none" },
-      });
-      const response = await withContentRange(
-        new Request("test:", { headers: { [RangeHeader.Range]: "bytes=0-" } }),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(initResponse === response);
-    });
-
-    it("if the response body has been read", async () => {
-      const initResponse = new Response("");
-      await initResponse.text();
-
-      assert(initResponse.bodyUsed);
-
-      const response = await withContentRange(
-        new Request("test:", { headers: { [RangeHeader.Range]: "bytes=0-" } }),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(initResponse === response);
-    });
-
-    it("if the parsing Range header is fail", async () => {
-      const initResponse = new Response("");
-
-      const response = await withContentRange(
-        new Request("test:", { headers: { [RangeHeader.Range]: "<invalid>" } }),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(initResponse === response);
-    });
-
-    it("if the ranges are not match", async () => {
-      const initResponse = new Response("");
-
-      const response = await withContentRange(
-        new Request("test:", { headers: { [RangeHeader.Range]: "bytes=0-" } }),
-        initResponse,
-        { ranges: [] },
-      );
-
-      assert(
-        equalsResponse(
-          response,
-          new Response(null, {
-            status: Status.RequestedRangeNotSatisfiable,
-            headers: { [RangeHeader.ContentRange]: "bytes */0" },
-          }),
-        ),
-      );
-    });
-
-    it("if the range unit does not match", async () => {
-      const initResponse = new Response("");
-
-      const response = await withContentRange(
-        new Request("test:", { headers: { [RangeHeader.Range]: "bytes=0-" } }),
-        initResponse,
-        {
-          ranges: [{
-            unit: "xxx",
-            specifiers: [Specifier.IntRange],
-            getSatisfiable: () => [],
-            getPartial: () => ({ content: "", headers: new Headers() }),
-          }],
-        },
-      );
-
-      assert(
-        equalsResponse(
-          response,
-          new Response(null, {
-            status: Status.RequestedRangeNotSatisfiable,
-            headers: { [RangeHeader.ContentRange]: "bytes */0" },
-          }),
-        ),
-      );
-    });
-
-    it("if the range specifier does not match", async () => {
-      const initResponse = new Response("");
-
-      const response = await withContentRange(
-        new Request("test:", { headers: { [RangeHeader.Range]: "bytes=0-" } }),
-        initResponse,
-        {
-          ranges: [{
-            unit: "bytes",
-            specifiers: [Specifier.OtherRange],
-            getSatisfiable: () => [],
-            getPartial: () => ({ content: "", headers: new Headers() }),
-          }],
-        },
-      );
-
-      assert(
-        equalsResponse(
-          response,
-          new Response(null, {
-            status: Status.RequestedRangeNotSatisfiable,
-            headers: { [RangeHeader.ContentRange]: "bytes */0" },
-          }),
-        ),
-      );
-    });
+    assert(response === initResponse);
   });
 
-  it("should return 413 response if the specifiers include invalid specifier", async () => {
-    const initResponse = new Response("abcd");
+  it("should return same response if the response has content-range header", async () => {
+    const respond = spy(() => new Response());
+    const initResponse = new Response("", {
+      headers: { [RangeHeader.ContentRange]: "" },
+    });
+
+    const response = await withContentRange(initResponse, {
+      rangeValue: "",
+      ranges: [{ rangeUnit: "bytes", respond }],
+    });
+
+    assert(response === initResponse);
+  });
+
+  it("should return same response if the response body has read", async () => {
+    const respond = spy(() => new Response());
+    const initResponse = new Response("");
+
+    await initResponse.text();
+
+    assert(initResponse.bodyUsed);
+
+    const response = await withContentRange(initResponse, {
+      rangeValue: "",
+      ranges: [{ rangeUnit: "bytes", respond }],
+    });
+
+    assert(response === initResponse);
+  });
+
+  it("should return same response if the response has accept-ranges header and the value is none", async () => {
+    const respond = spy(() => new Response());
+    const initResponse = new Response("", {
+      headers: { [RangeHeader.AcceptRanges]: "none" },
+    });
+
+    const response = await withContentRange(initResponse, {
+      rangeValue: "",
+      ranges: [{ rangeUnit: "bytes", respond }],
+    });
+
+    assert(response === initResponse);
+  });
+
+  it("should return same response if the range header is invalid", async () => {
+    const respond = spy(() => new Response());
+    const initResponse = new Response("");
+
+    const response = await withContentRange(initResponse, {
+      rangeValue: "",
+      ranges: [{ rangeUnit: "bytes", respond }],
+    });
+
+    assert(response === initResponse);
+  });
+
+  it("should return 416 response if the range unit does not match", async () => {
+    const initResponse = new Response("");
+    const respond = spy(() => new Response());
 
     const response = await withContentRange(
-      new Request("test:", { headers: { [RangeHeader.Range]: "bytes=0-" } }),
       initResponse,
       {
+        rangeValue: "bytes=0-",
         ranges: [{
-          unit: "bytes",
-          specifiers: [Specifier.IntRange],
-          getSatisfiable: () => [],
-          getPartial: () => ({ content: "", headers: new Headers() }),
+          rangeUnit: "xxx",
+          respond,
         }],
       },
     );
 
+    assertSpyCalls(respond, 0);
     assert(
-      await equalsResponse(
+      equalsResponse(
         response,
         new Response(null, {
           status: Status.RequestedRangeNotSatisfiable,
-          headers: {
-            [RangeHeader.ContentRange]: "bytes */4",
-          },
+          headers: { [RangeHeader.ContentRange]: "bytes */0" },
         }),
+      ),
+    );
+  });
+
+  it("should return response what merge respond response and init response", async () => {
+    const initResponse = new Response("");
+    const partialResponse = new Response();
+    const respond = spy(() => partialResponse);
+
+    const response = await withContentRange(
+      initResponse,
+      {
+        rangeValue: "bytes=0-",
+        ranges: [{ rangeUnit: "bytes", respond }],
+      },
+    );
+
+    assertSpyCalls(respond, 1);
+    assert(
+      await equalsResponse(
+        response,
+        partialResponse,
         true,
       ),
     );
   });
 
-  it("should return 206 response", async () => {
-    const initResponse = new Response("abcd");
+  it("should ignore invalid accept-ranges", async () => {
+    const initResponse = new Response("", {
+      headers: {
+        [RangeHeader.AcceptRanges]: `"invalid", none`,
+      },
+    });
+    const partialResponse = new Response();
+    const respond = spy(() => partialResponse);
 
     const response = await withContentRange(
-      new Request("test:", { headers: { [RangeHeader.Range]: "bytes=0-" } }),
       initResponse,
       {
-        ranges: [{
-          unit: "bytes",
-          specifiers: [Specifier.IntRange],
-          getSatisfiable: () => [{ firstPos: 0, lastPos: undefined }],
-          getPartial: () => ({
-            content: "efgh",
-            headers: new Headers({ [RangeHeader.ContentRange]: "range" }),
-          }),
-        }],
+        rangeValue: "bytes=0-",
+        ranges: [{ rangeUnit: "bytes", respond }],
       },
     );
 
+    assertSpyCalls(respond, 1);
     assert(
       await equalsResponse(
         response,
-        new Response("efgh", {
-          status: Status.PartialContent,
-          headers: {
-            ["content-type"]: "text/plain;charset=UTF-8",
-            [RangeHeader.ContentRange]: "range",
-          },
-        }),
+        partialResponse,
         true,
       ),
     );
@@ -290,8 +186,8 @@ describe("withAcceptRanges", () => {
       ],
     ];
 
-    await Promise.all(table.map(async ([initResponse, unit, expected]) => {
-      const response = withAcceptRanges(initResponse, unit);
+    await Promise.all(table.map(async ([initResponse, rangeUnit, expected]) => {
+      const response = withAcceptRanges(initResponse, rangeUnit);
 
       assert(
         await equalsResponse(response, expected, true),
