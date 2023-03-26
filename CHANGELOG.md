@@ -1,3 +1,15 @@
+# [1.0.0-beta.3](https://github.com/httpland/range-request-middleware/compare/1.0.0-beta.2...1.0.0-beta.3) (2023-03-26)
+
+
+### Bug Fixes
+
+* **transform:** remove unnecessary requirements ([43900d8](https://github.com/httpland/range-request-middleware/commit/43900d8f423c563541cd2f216fa89825f0d04114))
+
+
+### Features
+
+* **accept_ranges:** add accept-ranges header parser and check that header is none strictly ([980f9b4](https://github.com/httpland/range-request-middleware/commit/980f9b4b8d6b28460db028fd75a4dd9eaff86950))
+
 # [1.0.0-beta.2](https://github.com/httpland/range-request-middleware/compare/1.0.0-beta.1...1.0.0-beta.2) (2023-03-25)
 
 
