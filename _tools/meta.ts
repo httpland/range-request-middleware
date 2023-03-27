@@ -66,6 +66,11 @@ export const makeOptions = (version: string): BuildOptions => ({
       version: "1.1.0",
       subPath: "number/is_non_negative_integer",
     },
+    "https://deno.land/x/isx@1.1.0/iterable/is_not_empty.ts": {
+      name: "@miyauci/isx",
+      version: "1.1.0",
+      subPath: "iterable/is_not_empty",
+    },
     "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts": {
       name: "@httpland/http-utils",
       version: "1.0.0-beta.14",

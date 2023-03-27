@@ -6,6 +6,7 @@ export { isString } from "https://deno.land/x/isx@1.1.0/is_string.ts";
 export { isNull } from "https://deno.land/x/isx@1.1.0/is_null.ts";
 export { isNumber } from "https://deno.land/x/isx@1.1.0/is_number.ts";
 export { isNonNegativeInteger } from "https://deno.land/x/isx@1.1.0/number/is_non_negative_integer.ts";
+export { isNotEmpty } from "https://deno.land/x/isx@1.1.0/iterable/is_not_empty.ts";
 export {
   type Handler,
   type Middleware,
@@ -33,10 +34,6 @@ export {
 export { concat } from "https://deno.land/std@0.180.0/bytes/concat.ts";
 export { distinct } from "https://deno.land/std@0.180.0/collections/distinct.ts";
 export { toHashString } from "https://deno.land/std@0.180.0/crypto/to_hash_string.ts";
-
-export function isNotEmpty<T>(input: readonly T[]): input is [T, ...T[]] {
-  return !!input.length;
-}
 
 export function not<T extends readonly unknown[]>(
   fn: (...args: T) => boolean,
