@@ -2,10 +2,10 @@
 // This module is browser compatible.
 
 export { Status } from "https://deno.land/std@0.180.0/http/http_status.ts";
-export { isString } from "https://deno.land/x/isx@1.0.0/is_string.ts";
-export { isNull } from "https://deno.land/x/isx@1.0.0/is_null.ts";
-export { isNumber } from "https://deno.land/x/isx@1.0.0/is_number.ts";
-export { isNonNegativeInteger } from "https://deno.land/x/isx@1.0.0/number/is_non_negative_integer.ts";
+export { isString } from "https://deno.land/x/isx@1.1.0/is_string.ts";
+export { isNull } from "https://deno.land/x/isx@1.1.0/is_null.ts";
+export { isNumber } from "https://deno.land/x/isx@1.1.0/is_number.ts";
+export { isNonNegativeInteger } from "https://deno.land/x/isx@1.1.0/number/is_non_negative_integer.ts";
 export {
   type Handler,
   type Middleware,

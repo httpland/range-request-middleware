@@ -46,24 +46,24 @@ export const makeOptions = (version: string): BuildOptions => ({
       name: "@httpland/http-middleware",
       version: "1.0.0",
     },
-    "https://deno.land/x/isx@1.0.0/is_string.ts": {
+    "https://deno.land/x/isx@1.1.0/is_string.ts": {
       name: "@miyauci/isx",
-      version: "1.0.0",
+      version: "1.1.0",
       subPath: "is_string",
     },
-    "https://deno.land/x/isx@1.0.0/is_null.ts": {
+    "https://deno.land/x/isx@1.1.0/is_null.ts": {
       name: "@miyauci/isx",
-      version: "1.0.0",
+      version: "1.1.0",
       subPath: "is_null",
     },
-    "https://deno.land/x/isx@1.0.0/is_number.ts": {
+    "https://deno.land/x/isx@1.1.0/is_number.ts": {
       name: "@miyauci/isx",
-      version: "1.0.0",
+      version: "1.1.0",
       subPath: "is_number",
     },
-    "https://deno.land/x/isx@1.0.0/number/is_non_negative_integer.ts": {
+    "https://deno.land/x/isx@1.1.0/number/is_non_negative_integer.ts": {
       name: "@miyauci/isx",
-      version: "1.0.0",
+      version: "1.1.0",
       subPath: "number/is_non_negative_integer",
     },
     "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts": {
