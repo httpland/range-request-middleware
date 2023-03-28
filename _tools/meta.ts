@@ -46,29 +46,29 @@ export const makeOptions = (version: string): BuildOptions => ({
       name: "@httpland/http-middleware",
       version: "1.0.0",
     },
-    "https://deno.land/x/isx@1.1.0/is_string.ts": {
+    "https://deno.land/x/isx@1.1.1/is_string.ts": {
       name: "@miyauci/isx",
-      version: "1.1.0",
+      version: "1.1.1",
       subPath: "is_string",
     },
-    "https://deno.land/x/isx@1.1.0/is_null.ts": {
+    "https://deno.land/x/isx@1.1.1/is_null.ts": {
       name: "@miyauci/isx",
-      version: "1.1.0",
+      version: "1.1.1",
       subPath: "is_null",
     },
-    "https://deno.land/x/isx@1.1.0/is_number.ts": {
+    "https://deno.land/x/isx@1.1.1/is_number.ts": {
       name: "@miyauci/isx",
-      version: "1.1.0",
+      version: "1.1.1",
       subPath: "is_number",
     },
-    "https://deno.land/x/isx@1.1.0/number/is_non_negative_integer.ts": {
+    "https://deno.land/x/isx@1.1.1/number/is_non_negative_integer.ts": {
       name: "@miyauci/isx",
-      version: "1.1.0",
+      version: "1.1.1",
       subPath: "number/is_non_negative_integer",
     },
-    "https://deno.land/x/isx@1.1.0/iterable/is_not_empty.ts": {
+    "https://deno.land/x/isx@1.1.1/iterable/is_not_empty.ts": {
       name: "@miyauci/isx",
-      version: "1.1.0",
+      version: "1.1.1",
       subPath: "iterable/is_not_empty",
     },
     "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts": {
@@ -83,9 +83,13 @@ export const makeOptions = (version: string): BuildOptions => ({
       name: "@miyauci/result",
       version: "1.0.0",
     },
-    "https://deno.land/x/range_parser@1.1.0/mod.ts": {
+    "https://deno.land/x/range_parser@1.2.0/mod.ts": {
       name: "@httpland/range-parser",
-      version: "1.1.0",
+      version: "1.2.0",
+    },
+    "https://deno.land/x/accept_ranges_parser@1.0.0/mod.ts": {
+      name: "@httpland/accept-ranges-parser",
+      version: "1.0.0",
     },
   },
 });
