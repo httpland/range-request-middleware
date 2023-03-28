@@ -27,6 +27,7 @@ export {
   type OtherRange,
   parseRange,
   type Range,
+  type RangeSet,
   type RangeSpec,
   type RangesSpecifier,
   type SuffixRange,
