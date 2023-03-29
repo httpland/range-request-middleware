@@ -19,3 +19,4 @@ export {
   type IntRange,
   type SuffixRange,
 } from "https://deno.land/x/range_parser@1.2.0/mod.ts";
+export { type InclRange } from "https://deno.land/x/content_range_parser@1.0.0/mod.ts";

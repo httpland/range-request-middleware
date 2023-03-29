@@ -75,7 +75,7 @@ export async function withContentRange(
     // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
     return new RequestedRangeNotSatisfiableResponse({
       rangeUnit: parsedRange.rangeUnit,
-      range: { completeLength: body.byteLength },
+      completeLength: body.byteLength,
     }, { headers: response.headers });
   }
 

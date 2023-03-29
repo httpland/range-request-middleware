@@ -61,11 +61,6 @@ export const makeOptions = (version: string): BuildOptions => ({
       version: "1.1.1",
       subPath: "is_number",
     },
-    "https://deno.land/x/isx@1.1.1/number/is_non_negative_integer.ts": {
-      name: "@miyauci/isx",
-      version: "1.1.1",
-      subPath: "number/is_non_negative_integer",
-    },
     "https://deno.land/x/isx@1.1.1/iterable/is_not_empty.ts": {
       name: "@miyauci/isx",
       version: "1.1.1",
@@ -89,6 +84,10 @@ export const makeOptions = (version: string): BuildOptions => ({
     },
     "https://deno.land/x/accept_ranges_parser@1.0.0/mod.ts": {
       name: "@httpland/accept-ranges-parser",
+      version: "1.0.0",
+    },
+    "https://deno.land/x/content_range_parser@1.0.0/mod.ts": {
+      name: "@httpland/content-range-parser",
       version: "1.0.0",
     },
   },

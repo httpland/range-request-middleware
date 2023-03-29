@@ -2,15 +2,16 @@
 // This module is browser compatible.
 
 import {
+  ContentRange,
   filterKeys,
   isRepresentationHeader,
   not,
   parseAcceptRanges,
   RangeHeader,
   Status,
+  stringifyContentRange,
   type Token,
 } from "./deps.ts";
-import { type ContentRange, stringify } from "./content_range.ts";
 
 export const enum RangeUnit {
   Bytes = "bytes",
@@ -38,7 +39,7 @@ export class RequestedRangeNotSatisfiableResponse extends Response {
     );
 
     if (!headers.has(RangeHeader.ContentRange)) {
-      const contentRangeStr = stringify(contentRange);
+      const contentRangeStr = stringifyContentRange(contentRange);
 
       headers.set(RangeHeader.ContentRange, contentRangeStr);
     }

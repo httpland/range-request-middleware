@@ -11,6 +11,7 @@ import {
   assertSpyCalls,
   describe,
   equalsResponse,
+  type InclRange,
   type IntRange,
   it,
   RangeHeader,
@@ -19,7 +20,6 @@ import {
   Status,
   type SuffixRange,
 } from "../_dev_deps.ts";
-import { InclRange } from "../content_range.ts";
 
 describe("rangeSpec2InclRange", () => {
   it("should return incl range from int range", () => {
