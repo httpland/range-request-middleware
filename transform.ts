@@ -5,18 +5,17 @@ import {
   distinct,
   isErr,
   isString,
-  parse,
+  parseRange,
   RangeHeader,
   Status,
   unsafe,
 } from "./deps.ts";
 import {
   equalsCaseInsensitive,
+  hasToken,
   RangeUnit as Unit,
   RequestedRangeNotSatisfiableResponse,
 } from "./utils.ts";
-import { hasToken } from "./accept_range.ts";
-
 import { type Range, RangeUnit } from "./types.ts";
 
 export type UnitLike =
@@ -58,7 +57,7 @@ export async function withContentRange(
     return response;
   }
 
-  const rangeContainer = unsafe(() => parse(context.rangeValue));
+  const rangeContainer = unsafe(() => parseRange(context.rangeValue));
 
   if (isErr(rangeContainer)) {
     // A server that supports range requests MAY ignore or reject a Range header field that contains an invalid ranges-specifier (Section 14.1.1), a ranges-specifier with more than two overlapping ranges, or a set of many small ranges that are not listed in ascending order, since these are indications of either a broken client or a deliberate denial-of-service attack (Section 17.15).
@@ -76,7 +75,7 @@ export async function withContentRange(
     // @see https://www.rfc-editor.org/rfc/rfc9110#section-14.2-13
     return new RequestedRangeNotSatisfiableResponse({
       rangeUnit: parsedRange.rangeUnit,
-      range: { completeLength: body.byteLength },
+      completeLength: body.byteLength,
     }, { headers: response.headers });
   }
 

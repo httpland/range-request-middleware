@@ -7,6 +7,7 @@ export {
   type IntRange,
   type Middleware,
   type OtherRange,
+  type RangeSet,
   type RangeSpec,
   type RangesSpecifier,
   type SuffixRange,

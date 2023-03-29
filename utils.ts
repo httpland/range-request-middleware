@@ -2,13 +2,16 @@
 // This module is browser compatible.
 
 import {
+  ContentRange,
   filterKeys,
   isRepresentationHeader,
   not,
+  parseAcceptRanges,
   RangeHeader,
   Status,
+  stringifyContentRange,
+  type Token,
 } from "./deps.ts";
-import { type ContentRange, stringify } from "./content_range.ts";
 
 export const enum RangeUnit {
   Bytes = "bytes",
@@ -36,7 +39,7 @@ export class RequestedRangeNotSatisfiableResponse extends Response {
     );
 
     if (!headers.has(RangeHeader.ContentRange)) {
-      const contentRangeStr = stringify(contentRange);
+      const contentRangeStr = stringifyContentRange(contentRange);
 
       headers.set(RangeHeader.ContentRange, contentRangeStr);
     }
@@ -54,4 +57,15 @@ export function equalsCaseInsensitive(left: string, right: string): boolean {
   if (left === right) return true;
 
   return !left.localeCompare(right, undefined, { sensitivity: "accent" });
+}
+
+/** Whether the input has {@link Token} or not.
+ * If the input is invalid [`Accept-Ranges`](https://www.rfc-editor.org/rfc/rfc9110.html#section-14.3-2) then `false`.
+ */
+export function hasToken(input: string, token: Token): boolean {
+  try {
+    return parseAcceptRanges(input).includes(token);
+  } catch {
+    return false;
+  }
 }

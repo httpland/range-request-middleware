@@ -1,3 +1,17 @@
+# [1.1.0-beta.2](https://github.com/httpland/range-request-middleware/compare/1.1.0-beta.1...1.1.0-beta.2) (2023-03-29)
+
+
+### Features
+
+* **deps:** use external content-range serializer ([5095c21](https://github.com/httpland/range-request-middleware/commit/5095c213075b02d76d1ce03ed37c26511092117e))
+
+# [1.1.0-beta.1](https://github.com/httpland/range-request-middleware/compare/1.0.0...1.1.0-beta.1) (2023-03-28)
+
+
+### Features
+
+* **mod:** export dependent interface ([32609a6](https://github.com/httpland/range-request-middleware/commit/32609a67d0249d100b74e21b66a35a4b71a959b4))
+
 # 1.0.0 (2023-03-26)
 
 

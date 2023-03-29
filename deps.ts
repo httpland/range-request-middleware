@@ -1,11 +1,11 @@
 // Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
 // This module is browser compatible.
 
-export { Status } from "https://deno.land/std@0.180.0/http/http_status.ts";
-export { isString } from "https://deno.land/x/isx@1.0.0/is_string.ts";
-export { isNull } from "https://deno.land/x/isx@1.0.0/is_null.ts";
-export { isNumber } from "https://deno.land/x/isx@1.0.0/is_number.ts";
-export { isNonNegativeInteger } from "https://deno.land/x/isx@1.0.0/number/is_non_negative_integer.ts";
+export { Status } from "https://deno.land/std@0.181.0/http/http_status.ts";
+export { isString } from "https://deno.land/x/isx@1.1.1/is_string.ts";
+export { isNull } from "https://deno.land/x/isx@1.1.1/is_null.ts";
+export { isNumber } from "https://deno.land/x/isx@1.1.1/is_number.ts";
+export { isNotEmpty } from "https://deno.land/x/isx@1.1.1/iterable/is_not_empty.ts";
 export {
   type Handler,
   type Middleware,
@@ -24,19 +24,25 @@ export {
   isIntRange,
   isOtherRange,
   type OtherRange,
-  parse,
+  parseRange,
   type Range,
+  type RangeSet,
   type RangeSpec,
   type RangesSpecifier,
   type SuffixRange,
-} from "https://deno.land/x/range_parser@1.1.0/mod.ts";
-export { concat } from "https://deno.land/std@0.180.0/bytes/concat.ts";
-export { distinct } from "https://deno.land/std@0.180.0/collections/distinct.ts";
-export { toHashString } from "https://deno.land/std@0.180.0/crypto/to_hash_string.ts";
-
-export function isNotEmpty<T>(input: readonly T[]): input is [T, ...T[]] {
-  return !!input.length;
-}
+} from "https://deno.land/x/range_parser@1.2.0/mod.ts";
+export {
+  parseAcceptRanges,
+  type Token,
+} from "https://deno.land/x/accept_ranges_parser@1.0.0/mod.ts";
+export { concat } from "https://deno.land/std@0.181.0/bytes/concat.ts";
+export { distinct } from "https://deno.land/std@0.181.0/collections/distinct.ts";
+export { toHashString } from "https://deno.land/std@0.181.0/crypto/to_hash_string.ts";
+export {
+  type ContentRange,
+  type InclRange,
+  stringifyContentRange,
+} from "https://deno.land/x/content_range_parser@1.0.0/mod.ts";
 
 export function not<T extends readonly unknown[]>(
   fn: (...args: T) => boolean,

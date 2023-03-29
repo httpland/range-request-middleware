@@ -2,6 +2,7 @@
 // This module is browser compatible.
 
 import {
+  type InclRange,
   type IntRange,
   isIntRange,
   isNotEmpty,
@@ -13,6 +14,7 @@ import {
   RangesSpecifier,
   RepresentationHeader,
   Status,
+  stringifyContentRange,
   type SuffixRange,
   toHashString,
 } from "../deps.ts";
@@ -23,7 +25,6 @@ import {
   shallowMergeHeaders,
 } from "../utils.ts";
 import { multipartByteranges } from "./utils.ts";
-import { type InclRange, stringify } from "../content_range.ts";
 
 /** Context for bytes range. */
 export interface BytesContext {
@@ -110,7 +111,7 @@ export async function createPartialResponse(
   if (!isNotEmpty(inclRanges)) {
     return new RequestedRangeNotSatisfiableResponse({
       rangeUnit,
-      range: { completeLength: size },
+      completeLength: size,
     }, { headers: response.headers });
   }
 
@@ -120,9 +121,10 @@ export async function createPartialResponse(
       inclRange.firstPos,
       inclRange.lastPos + 1,
     );
-    const contentRange = stringify({
+    const contentRange = stringifyContentRange({
       rangeUnit: RangeUnit.Bytes,
-      range: { ...inclRange, completeLength: size },
+      ...inclRange,
+      completeLength: size,
     });
     const right = new Headers({ [RangeHeader.ContentRange]: contentRange });
     const headers = shallowMergeHeaders(response.headers, right);

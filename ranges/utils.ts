@@ -1,8 +1,12 @@
 // Copyright 2023-latest the httpland authors. All rights reserved. MIT license.
 // This module is browser compatible.
 
-import { concat, isString } from "../deps.ts";
-import { InclRange, stringify } from "../content_range.ts";
+import {
+  concat,
+  type InclRange,
+  isString,
+  stringifyContentRange,
+} from "../deps.ts";
 
 export interface MultipartByteranges {
   readonly content: ArrayBuffer;
@@ -29,10 +33,11 @@ export function multipartByteranges(args: MultipartByteranges): ArrayBuffer {
 
   return buffer;
 
-  function bodyParts(range: InclRange): ArrayBuffer[] {
-    const contentRangeStr = stringify({
+  function bodyParts(inclRange: InclRange): ArrayBuffer[] {
+    const contentRangeStr = stringifyContentRange({
       rangeUnit,
-      range: { ...range, completeLength: size },
+      ...inclRange,
+      completeLength: size,
     });
 
     return [
@@ -40,7 +45,7 @@ export function multipartByteranges(args: MultipartByteranges): ArrayBuffer {
       contentTypeStr,
       `Content-Range: ${contentRangeStr}`,
       "",
-      content.slice(range.firstPos, range.lastPos + 1),
+      content.slice(inclRange.firstPos, inclRange.lastPos + 1),
     ].map(toBuffer);
   }
 }
