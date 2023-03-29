@@ -18,7 +18,7 @@ import type { Range } from "./types.ts";
  *
  * @example
  * ```ts
- * import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
+ * import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/middleware.ts";
  * import {
  *   assert,
  *   assertEquals,

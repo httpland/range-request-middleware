@@ -22,7 +22,7 @@ Upon receipt of a range request, if the response [satisfies](#satisfiable) the
 range requirement, [convert](#convert) it to a partial response.
 
 ```ts
-import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
+import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/middleware.ts";
 import {
   assert,
   assertEquals,
@@ -62,7 +62,7 @@ It compliant with
 [RFC 9110, 14.6. Media Type multipart/byteranges](https://www.rfc-editor.org/rfc/rfc9110.html#name-media-type-multipart-bytera).
 
 ```ts
-import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/mod.ts";
+import { rangeRequest } from "https://deno.land/x/range_request_middleware@$VERSION/middleware.ts";
 import {
   assert,
   assertEquals,
