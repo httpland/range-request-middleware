@@ -6,7 +6,7 @@ export const makeOptions = (version: string): BuildOptions => ({
   compilerOptions: {
     lib: ["dom", "dom.iterable", "esnext"],
   },
-  typeCheck: false,
+  typeCheck: true,
   entryPoints: ["./mod.ts"],
   outDir: "./npm",
   package: {
@@ -66,13 +66,15 @@ export const makeOptions = (version: string): BuildOptions => ({
       version: "1.1.1",
       subPath: "iterable/is_not_empty",
     },
-    "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts": {
+    "https://deno.land/x/http_utils@1.0.0/header.ts": {
       name: "@httpland/http-utils",
-      version: "1.0.0-beta.14",
+      version: "1.0.0",
+      subPath: "header.js",
     },
-    "https://deno.land/x/http_utils@1.0.0-beta.14/method.ts": {
+    "https://deno.land/x/http_utils@1.0.0/method.ts": {
       name: "@httpland/http-utils",
-      version: "1.0.0-beta.14",
+      version: "1.0.0",
+      subPath: "method.js",
     },
     "https://deno.land/x/result_js@1.0.0/mod.ts": {
       name: "@miyauci/result",
