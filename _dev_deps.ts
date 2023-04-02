@@ -9,12 +9,12 @@ export {
   spy,
 } from "https://deno.land/std@0.181.0/testing/mock.ts";
 export { Status } from "https://deno.land/std@0.181.0/http/http_status.ts";
-export { equalsResponse } from "https://deno.land/x/http_utils@1.0.0-beta.14/response.ts";
+export { equalsResponse } from "https://deno.land/x/http_utils@1.0.0/response.ts";
 export {
   ConditionalHeader,
   RangeHeader,
   RepresentationHeader,
-} from "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts";
+} from "https://deno.land/x/http_utils@1.0.0/header.ts";
 export {
   type IntRange,
   type SuffixRange,

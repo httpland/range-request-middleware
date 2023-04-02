@@ -16,8 +16,8 @@ export {
   isRepresentationHeader,
   RangeHeader,
   RepresentationHeader,
-} from "https://deno.land/x/http_utils@1.0.0-beta.14/header.ts";
-export { Method } from "https://deno.land/x/http_utils@1.0.0-beta.14/method.ts";
+} from "https://deno.land/x/http_utils@1.0.0/header.ts";
+export { Method } from "https://deno.land/x/http_utils@1.0.0/method.ts";
 export { isErr, unsafe } from "https://deno.land/x/result_js@1.0.0/mod.ts";
 export {
   type IntRange,
