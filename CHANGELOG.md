@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/httpland/range-request-middleware/compare/1.1.0...1.2.0) (2023-04-02)
+
+
+### Features
+
+* **deps:** update deps version ([de20d9a](https://github.com/httpland/range-request-middleware/commit/de20d9aafda8baebd0a12a4209fc07b516463503))
+
 # [1.2.0-beta.1](https://github.com/httpland/range-request-middleware/compare/1.1.0...1.2.0-beta.1) (2023-04-02)
 
 
