@@ -46,34 +46,34 @@ export const makeOptions = (version: string): BuildOptions => ({
       name: "@httpland/http-middleware",
       version: "1.0.0",
     },
-    "https://deno.land/x/isx@1.1.1/is_string.ts": {
+    "https://deno.land/x/isx@1.3.1/is_string.ts": {
       name: "@miyauci/isx",
-      version: "1.1.1",
-      subPath: "is_string",
+      version: "1.3.1",
+      subPath: "is_string.js",
     },
-    "https://deno.land/x/isx@1.1.1/is_null.ts": {
+    "https://deno.land/x/isx@1.3.1/is_null.ts": {
       name: "@miyauci/isx",
-      version: "1.1.1",
-      subPath: "is_null",
+      version: "1.3.1",
+      subPath: "is_null.js",
     },
-    "https://deno.land/x/isx@1.1.1/is_number.ts": {
+    "https://deno.land/x/isx@1.3.1/is_number.ts": {
       name: "@miyauci/isx",
-      version: "1.1.1",
-      subPath: "is_number",
+      version: "1.3.1",
+      subPath: "is_number.js",
     },
-    "https://deno.land/x/isx@1.1.1/iterable/is_not_empty.ts": {
+    "https://deno.land/x/isx@1.3.1/iterable/is_not_empty.ts": {
       name: "@miyauci/isx",
-      version: "1.1.1",
-      subPath: "iterable/is_not_empty",
+      version: "1.3.1",
+      subPath: "iterable/is_not_empty.js",
     },
-    "https://deno.land/x/http_utils@1.0.0/header.ts": {
+    "https://deno.land/x/http_utils@1.2.0/header.ts": {
       name: "@httpland/http-utils",
-      version: "1.0.0",
+      version: "1.2.0",
       subPath: "header.js",
     },
-    "https://deno.land/x/http_utils@1.0.0/method.ts": {
+    "https://deno.land/x/http_utils@1.2.0/method.ts": {
       name: "@httpland/http-utils",
-      version: "1.0.0",
+      version: "1.2.0",
       subPath: "method.js",
     },
     "https://deno.land/x/result_js@1.0.0/mod.ts": {
@@ -84,9 +84,9 @@ export const makeOptions = (version: string): BuildOptions => ({
       name: "@httpland/range-parser",
       version: "1.2.0",
     },
-    "https://deno.land/x/accept_ranges_parser@1.0.0/mod.ts": {
+    "https://deno.land/x/accept_ranges_parser@1.0.1/mod.ts": {
       name: "@httpland/accept-ranges-parser",
-      version: "1.0.0",
+      version: "1.0.1",
     },
     "https://deno.land/x/content_range_parser@1.0.0/mod.ts": {
       name: "@httpland/content-range-parser",
